@@ -1,0 +1,918 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Transaction Auditor - Admin Dashboard</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = { darkMode: 'class', theme: { extend: {} } }
+    </script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> 
+    
+    <style>
+        .table-container::-webkit-scrollbar { height: 6px; width: 6px; }
+        .table-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
+        .table-container::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
+        .table-container::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
+        .table-container { -webkit-overflow-scrolling: touch; } 
+        .brand-header { background-color: #00529B; }
+        
+        /* Hardware Acceleration for fast animations */
+        .modal-animate { transition: transform 0.2s ease-out, opacity 0.2s ease-out; }
+    </style>
+</head>
+<body class="bg-gray-100 dark:bg-gray-900 min-h-screen p-2 md:p-6 font-sans transition-colors duration-300">
+
+    <div id="customMessageModal" class="fixed inset-0 bg-black bg-opacity-60 hidden flex items-center justify-center z-[70] p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl overflow-hidden max-w-sm w-full transform transition-all border border-gray-200 dark:border-gray-700">
+            <div class="p-6 text-center">
+                <div id="msgIcon" class="text-4xl mb-4"></div>
+                <h3 id="msgTitle" class="text-lg font-bold text-gray-900 dark:text-white mb-2"></h3>
+                <p id="msgText" class="text-sm text-gray-600 dark:text-gray-300"></p>
+            </div>
+            <div id="msgButtons" class="bg-gray-50 dark:bg-gray-700/50 px-6 py-4 flex justify-center gap-3"></div>
+        </div>
+    </div>
+
+    <div class="max-w-7xl mx-auto space-y-4 md:space-y-6">
+        
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 md:p-6 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border border-gray-200 dark:border-gray-700 transition-colors">
+            <div class="flex items-center gap-3 md:gap-4 w-full lg:w-auto">
+                <div class="w-10 h-10 md:w-12 md:h-12 bg-blue-100 text-[#00529B] rounded-xl flex items-center justify-center shrink-0 shadow-sm border border-blue-200">
+                    <i class="fas fa-shield-alt text-xl md:text-2xl"></i>
+                </div>
+                <div class="flex-1">
+                    <h1 class="text-xl md:text-3xl font-bold text-[#003875] dark:text-blue-400 tracking-tight">Admin Dashboard</h1>
+                    <div class="flex items-center gap-2 mt-0.5">
+                        <span class="bg-red-100 text-red-800 text-[10px] md:text-xs font-bold px-2 py-0.5 rounded uppercase tracking-wide border border-red-200"><i class="fas fa-lock mr-1"></i> Private</span>
+                        <p class="text-gray-500 dark:text-gray-400 text-xs md:text-sm font-medium truncate">Secure Financial Hub</p>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
+                <button onclick="openTransactionModal()" class="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-bold shadow-sm transition flex items-center justify-center gap-2 text-sm active:scale-95 whitespace-nowrap">
+                    <i class="fas fa-plus"></i> New Transaction
+                </button>
+                <button onclick="exportToCSV()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-bold shadow-sm transition flex items-center justify-center gap-2 text-sm active:scale-95 whitespace-nowrap">
+                    <i class="fas fa-file-excel"></i> Export CSV
+                </button>
+                
+                <div class="w-full sm:w-auto flex-1 relative bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 shadow-inner flex flex-col">
+                    <i class="fas fa-search absolute left-3 top-2.5 text-gray-400 dark:text-gray-300"></i>
+                    <input type="text" id="searchInput" placeholder="Search..." class="w-full bg-transparent border-none py-2 pl-9 pr-8 text-sm outline-none text-gray-700 dark:text-gray-200">
+                    <button id="clearSearchBtn" onclick="clearSearch()" class="absolute right-2 top-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-200 hidden"><i class="fas fa-times-circle"></i></button>
+                </div>
+                
+                <div class="flex items-center justify-between sm:justify-start gap-2 w-full sm:w-auto">
+                    <button onclick="toggleDarkMode()" class="bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-200 p-2 rounded-lg shadow-sm transition h-[38px] w-[38px] flex items-center justify-center shrink-0 active:scale-95" title="Toggle Dark Mode">
+                        <i id="darkModeIcon" class="fas fa-moon"></i>
+                    </button>
+                    <button onclick="fetchTransactions()" id="syncBtn" class="bg-gray-800 dark:bg-black hover:bg-gray-900 text-white p-2 rounded-lg shadow-sm transition h-[38px] w-[38px] flex items-center justify-center shrink-0 active:scale-95" title="Force Sync"><i class="fas fa-sync-alt"></i></button>
+                    <div class="flex items-center gap-2 bg-gray-50 dark:bg-gray-700 p-1.5 rounded-lg border border-gray-200 dark:border-gray-600 shadow-inner h-[38px] flex-1 sm:flex-none justify-center">
+                        <i class="far fa-calendar-alt text-blue-600 dark:text-blue-400 pl-2"></i>
+                        <input type="month" id="monthSelector" class="bg-transparent border-none text-gray-800 dark:text-gray-200 font-bold focus:ring-0 outline-none cursor-pointer text-sm w-full max-w-[120px]">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 border-l-4 border-blue-500 relative group transition-colors">
+                <p class="text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400">Start Balance</p>
+                <h3 class="text-lg md:text-2xl font-bold text-gray-800 dark:text-white mt-1 truncate" id="cardStartBal">0.00</h3>
+                <p class="text-[9px] md:text-[10px] text-gray-400 mt-1 italic truncate" id="cardStartBalDate">Updated: Never</p>
+            </div>
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 border-l-4 border-green-500 transition-colors">
+                <p class="text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400">Total In (+)</p>
+                <h3 class="text-lg md:text-2xl font-bold text-green-600 dark:text-green-400 mt-1 truncate" id="cardTotalIn">0.00</h3>
+            </div>
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 border-l-4 border-red-400 transition-colors">
+                <p class="text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400">Total Out (-)</p>
+                <h3 class="text-lg md:text-2xl font-bold text-red-500 dark:text-red-400 mt-1 truncate" id="cardTotalOut">0.00</h3>
+            </div>
+            <div id="balanceCardContainer" class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 border-l-4 border-gray-800 dark:border-gray-500 transition-colors duration-300">
+                <p class="text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400 truncate" id="balanceLabel">Ending Balance</p>
+                <h3 class="text-lg md:text-2xl font-bold text-gray-800 dark:text-white mt-1 truncate transition-colors duration-300" id="cardCurrentBal">0.00</h3>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-2 gap-3 md:gap-4">
+            <div class="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-gray-800 dark:to-gray-800 rounded-xl shadow-sm p-3 md:p-4 border border-purple-100 dark:border-gray-700 flex items-center justify-between">
+                <div>
+                    <p class="text-[10px] md:text-xs font-bold text-purple-600 dark:text-purple-400 uppercase tracking-wider mb-1"><i class="fas fa-users mr-1"></i> Membership Drive</p>
+                    <h3 class="text-base md:text-xl font-black text-gray-800 dark:text-white" id="campMembershipTotal">₱0.00</h3>
+                </div>
+                <div class="h-8 w-8 md:h-10 md:w-10 rounded-full bg-purple-200 dark:bg-purple-900/50 flex items-center justify-center text-purple-600 dark:text-purple-300">
+                    <i class="fas fa-chart-line"></i>
+                </div>
+            </div>
+            <div class="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-gray-800 dark:to-gray-800 rounded-xl shadow-sm p-3 md:p-4 border border-amber-100 dark:border-gray-700 flex items-center justify-between">
+                <div>
+                    <p class="text-[10px] md:text-xs font-bold text-amber-600 dark:text-amber-500 uppercase tracking-wider mb-1"><i class="fas fa-university mr-1"></i> SLU Univ Week</p>
+                    <h3 class="text-base md:text-xl font-black text-gray-800 dark:text-white" id="campSLUTotal">₱0.00</h3>
+                </div>
+                <div class="h-8 w-8 md:h-10 md:w-10 rounded-full bg-amber-200 dark:bg-amber-900/50 flex items-center justify-center text-amber-600 dark:text-amber-300">
+                    <i class="fas fa-fire"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 hidden sm:grid">
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-3 md:p-4 border border-gray-200 dark:border-gray-700 transition-colors">
+                <h3 class="text-xs md:text-sm font-semibold text-gray-600 dark:text-gray-300 mb-2 text-center">Income Breakdown</h3>
+                <div class="h-[150px] md:h-[200px] flex justify-center"><canvas id="incomeChart"></canvas></div>
+            </div>
+            <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-3 md:p-4 border border-gray-200 dark:border-gray-700 transition-colors">
+                <h3 class="text-xs md:text-sm font-semibold text-gray-600 dark:text-gray-300 mb-2 text-center">Expense Breakdown</h3>
+                <div class="h-[150px] md:h-[200px] flex justify-center"><canvas id="expenseChart"></canvas></div>
+            </div>
+        </div>
+
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-gray-200 dark:border-gray-700 transition-colors">
+            <div class="overflow-x-auto overflow-y-auto max-h-[500px] md:max-h-[600px] table-container relative">
+                <table class="w-full text-left border-collapse min-w-[850px]">
+                    <thead class="sticky top-0 z-10 shadow-md">
+                        <tr class="brand-header text-white text-xs md:text-sm">
+                            <th class="py-3 px-3 text-center w-12"><input type="checkbox" id="selectAllCb" class="cursor-pointer scale-125" onchange="toggleSelectAll()"></th>
+                            <th class="py-3 px-3 font-semibold cursor-pointer hover:bg-blue-800 w-36" onclick="sortTable('date')">Date & Time <i class="fas fa-sort ml-1 opacity-50"></i></th>
+                            <th class="py-3 px-3 font-semibold cursor-pointer hover:bg-blue-800 w-28" onclick="sortTable('category')">Category <i class="fas fa-sort ml-1 opacity-50"></i></th>
+                            <th class="py-3 px-3 font-semibold min-w-[150px]">Description</th>
+                            <th class="py-3 px-3 font-semibold w-24">Ref No.</th>
+                            <th class="py-3 px-3 font-semibold text-right w-24">Debit (-)</th>
+                            <th class="py-3 px-3 font-semibold text-right w-24">Credit (+)</th>
+                            <th class="py-3 px-3 font-semibold text-right w-28">Balance</th>
+                            <th class="py-3 px-3 font-semibold text-center w-20 cursor-pointer hover:bg-blue-800" onclick="sortTable('visibility')">Status <i class="fas fa-sort ml-1 opacity-50"></i></th>
+                            <th class="py-3 px-3 font-semibold text-center w-24">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="tableBody" class="text-xs md:text-sm text-gray-700 dark:text-gray-300">
+                        <tr><td colspan="10" class="text-center py-10 text-gray-500"><i class="fas fa-spinner fa-spin mr-2"></i> Loading Data...</td></tr>
+                    </tbody>
+                </table>
+            </div>
+            
+            <div class="bg-gray-50 dark:bg-gray-900 p-3 md:p-4 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center text-xs md:text-sm transition-colors">
+                <span class="text-gray-500 dark:text-gray-400 font-medium" id="tableFooterMsg">Ready.</span>
+            </div>
+        </div>
+        
+        <div class="text-center text-gray-400 text-[10px] md:text-xs mt-4 mb-20">
+            &copy; 2026 Owned by Wendell Heramia. All rights reserved.
+        </div>
+    </div>
+
+    <div id="bulkActionBar" class="fixed bottom-0 left-0 right-0 bg-gray-900 dark:bg-black text-white p-3 md:p-4 flex flex-col sm:flex-row justify-between items-center z-40 hidden shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.2)]">
+        <div class="font-bold text-sm md:text-base mb-2 sm:mb-0"><span id="bulkCountTxt" class="text-blue-400">0 selected</span></div>
+        <div class="flex gap-2">
+            <button onclick="handleBulkAction('public')" class="bg-green-600 hover:bg-green-700 px-3 py-2 rounded text-xs md:text-sm font-semibold transition active:scale-95"><i class="fas fa-globe mr-1"></i> Make Public</button>
+            <button onclick="handleBulkAction('private')" class="bg-gray-600 hover:bg-gray-700 px-3 py-2 rounded text-xs md:text-sm font-semibold transition active:scale-95"><i class="fas fa-lock mr-1"></i> Make Private</button>
+            <button onclick="handleBulkAction('delete')" class="bg-red-600 hover:bg-red-700 px-3 py-2 rounded text-xs md:text-sm font-semibold transition active:scale-95"><i class="fas fa-trash-alt mr-1"></i> Delete</button>
+        </div>
+    </div>
+
+    <div id="transactionModal" class="fixed inset-0 bg-black bg-opacity-60 hidden flex items-center justify-center z-50 p-2 sm:p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl max-h-[95vh] overflow-hidden flex flex-col border border-gray-200 dark:border-gray-700">
+            <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 shrink-0">
+                <h3 id="txnModalTitle" class="font-bold text-lg text-gray-800 dark:text-white">Record New Transaction</h3>
+                <button onclick="closeTransactionModal()" class="text-gray-400 hover:text-red-500 transition text-xl px-2 active:scale-95"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div class="p-4 md:p-6 overflow-y-auto flex-1 custom-scrollbar">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Date & Time *</label>
+                        <input type="datetime-local" id="txnDate" class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded px-3 py-2 text-sm outline-none focus:border-blue-500">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Ref / Receipt No.</label>
+                        <input type="text" id="txnRef" placeholder="Optional" class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded px-3 py-2 text-sm outline-none focus:border-blue-500 font-mono">
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Category / Campaign *</label>
+                        <select id="txnCat" class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded px-3 py-2 text-sm outline-none focus:border-blue-500" onchange="toggleProductSelection()">
+                            <option value="">Select Category...</option>
+                            <option value="Membership Drive">Membership Drive</option>
+                            <option value="SLU Univ Week">SLU Univ Week</option>
+                            <option value="Event Sponsorship">Event Sponsorship</option>
+                            <option value="Supplies">Supplies</option>
+                            <option value="Utilities">Utilities</option>
+                            <option value="Other">Other (Type below)</option>
+                        </select>
+                        <input type="text" id="txnCatCustom" placeholder="Enter custom category..." class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded px-3 py-2 text-sm outline-none focus:border-blue-500 mt-2 hidden">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Visibility *</label>
+                        <select id="txnVis" class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded px-3 py-2 text-sm outline-none focus:border-blue-500">
+                            <option value="private">Private (Admin Only)</option>
+                            <option value="public">Public (Everyone)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div id="productSelectionSection" class="mb-4 hidden bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg border border-purple-200 dark:border-purple-800">
+                    <label class="block text-sm font-bold text-purple-800 dark:text-purple-300 mb-2"><i class="fas fa-shopping-cart mr-1"></i> Membership Products <span class="text-xs font-normal text-purple-600 dark:text-purple-400 ml-2">(Select multiple)</span></label>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <label class="flex items-center gap-2 p-2 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                            <input type="checkbox" name="memProduct" value="160" data-name="New Registration" class="cursor-pointer w-4 h-4" onchange="calculateProductTotal()">
+                            <span class="text-sm text-gray-700 dark:text-gray-300 font-medium flex-1">New Registration</span>
+                            <span class="text-xs font-bold text-green-600">₱160</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                            <input type="checkbox" name="memProduct" value="120" data-name="Renewal" class="cursor-pointer w-4 h-4" onchange="calculateProductTotal()">
+                            <span class="text-sm text-gray-700 dark:text-gray-300 font-medium flex-1">Renewal</span>
+                            <span class="text-xs font-bold text-green-600">₱120</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                            <input type="checkbox" name="memProduct" value="180" data-name="Lanyard" class="cursor-pointer w-4 h-4" onchange="calculateProductTotal()">
+                            <span class="text-sm text-gray-700 dark:text-gray-300 font-medium flex-1">Lanyard</span>
+                            <span class="text-xs font-bold text-green-600">₱180</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition">
+                            <input type="checkbox" name="memProduct" value="45" data-name="Pins" class="cursor-pointer w-4 h-4" onchange="calculateProductTotal()">
+                            <span class="text-sm text-gray-700 dark:text-gray-300 font-medium flex-1">Pins</span>
+                            <span class="text-xs font-bold text-green-600">₱45</span>
+                        </label>
+                        <div class="flex flex-col gap-1 p-2 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600 sm:col-span-2 md:col-span-1">
+                            <div class="flex justify-between items-center mb-1">
+                                <span class="text-sm text-gray-700 dark:text-gray-300 font-bold">GE T-Shirt</span>
+                            </div>
+                            <label class="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-1 rounded transition">
+                                <input type="checkbox" name="memProduct" value="600" data-name="GE T-Shirt (Full)" class="cursor-pointer w-4 h-4" onchange="calculateProductTotal()">
+                                <span class="text-xs text-gray-600 dark:text-gray-400 flex-1">Full Payment</span>
+                                <span class="text-xs font-bold text-green-600">₱600</span>
+                            </label>
+                            <label class="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-1 rounded transition">
+                                <input type="checkbox" name="memProduct" value="100" data-name="GE T-Shirt (Downpayment)" class="cursor-pointer w-4 h-4" onchange="calculateProductTotal()">
+                                <span class="text-xs text-gray-600 dark:text-gray-400 flex-1">Downpayment</span>
+                                <span class="text-xs font-bold text-amber-600">₱100</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Transaction Type *</label>
+                        <select id="txnType" class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded px-3 py-2 text-sm outline-none focus:border-blue-500 font-bold">
+                            <option value="income" class="text-green-600">Income (+)</option>
+                            <option value="expense" class="text-red-600">Expense (-)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Amount (₱) *</label>
+                        <input type="number" step="0.01" id="txnAmount" placeholder="0.00" class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded px-3 py-2 text-sm outline-none focus:border-blue-500 font-bold text-lg">
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Description / Name *</label>
+                    <input type="text" id="txnDesc" placeholder="What is this for? or Who paid?" class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded px-3 py-2 text-sm outline-none focus:border-blue-500">
+                </div>
+
+                <div class="mb-2">
+                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Attach Proof (Image)</label>
+                    <input type="file" id="txnFile" accept="image/*" class="w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-gray-600 dark:file:text-gray-200">
+                    <p class="text-[10px] text-gray-400 mt-1">Max size: 2MB. Leave blank if editing to keep old image.</p>
+                </div>
+            </div>
+            
+            <div class="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 flex justify-end gap-3 shrink-0">
+                <button onclick="closeTransactionModal()" class="px-5 py-2.5 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg font-bold hover:bg-gray-300 dark:hover:bg-gray-600 transition text-sm active:scale-95">Cancel</button>
+                <button onclick="submitTransaction()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-sm transition text-sm active:scale-95 flex items-center"><i class="fas fa-save mr-2"></i> Save Record</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="auditHistoryModal" class="fixed inset-0 bg-black bg-opacity-60 hidden flex items-center justify-center z-50 p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg flex flex-col border border-gray-200 dark:border-gray-700 max-h-[80vh]">
+            <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700 bg-amber-50 dark:bg-amber-900/30 rounded-t-xl shrink-0">
+                <h3 class="font-bold text-lg text-amber-800 dark:text-amber-400"><i class="fas fa-history mr-2"></i> Audit Trail History</h3>
+                <button onclick="closeAuditModal()" class="text-gray-500 hover:text-red-500 transition text-xl px-2 active:scale-95"><i class="fas fa-times"></i></button>
+            </div>
+            <div class="p-4 overflow-y-auto flex-1 custom-scrollbar space-y-3" id="auditHistoryList">
+            </div>
+        </div>
+    </div>
+
+    <div id="imageModal" class="fixed inset-0 bg-black bg-opacity-90 hidden flex items-center justify-center z-[60] p-4 backdrop-blur-sm transition-opacity">
+        <div class="bg-white dark:bg-gray-900 rounded-xl shadow-2xl overflow-hidden max-w-4xl w-full h-[85vh] flex flex-col relative border border-gray-700">
+            <div class="flex justify-between items-center p-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 z-20 shrink-0">
+                <h3 id="imgModalTitle" class="font-semibold text-gray-800 dark:text-gray-200 truncate">Attached Proof</h3>
+                <button onclick="closeImageModal()" class="text-gray-700 dark:text-gray-300 hover:text-red-600 transition px-3 py-1.5 bg-gray-100 dark:bg-gray-700 rounded font-bold text-sm active:scale-95"><i class="fas fa-times mr-1"></i> Close</button>
+            </div>
+            <div class="flex-1 relative overflow-hidden bg-[#111]">
+                <img id="modalImage" src="" class="absolute inset-0 w-full h-full object-contain" alt="Receipt">
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const GAS_URL = "https://script.google.com/macros/s/AKfycby6rC0HH5DqWlsXjiUc7Te2zX3NA5xHU4m6gf5GEuSUJ6_HAIXvD2D-lpydFTQPGBHV/exec"; 
+
+        const today = new Date();
+        const formatYearMonth = (date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+        
+        let currentViewMonth = formatYearMonth(today); 
+        let startingBalances = {};
+        let transactions = []; 
+        let filteredTransactions = [];
+        let offlineQueue = JSON.parse(localStorage.getItem('auditor_offline_queue') || '[]');
+        
+        let incChartInst = null; let expChartInst = null;
+        let currentEditId = null;
+        let currentSort = { column: 'date', asc: false };
+
+        // Bind Escape Key
+        document.addEventListener('keydown', function(event) {
+            if (event.key === "Escape") {
+                closeTransactionModal(); closeImageModal(); closeAuditModal();
+                document.getElementById('customMessageModal').classList.add('hidden');
+            }
+        });
+
+        // Search engine listener
+        const searchInput = document.getElementById('searchInput');
+        const clearSearchBtn = document.getElementById('clearSearchBtn');
+        searchInput.addEventListener('input', () => {
+            if(searchInput.value.length > 0) clearSearchBtn.classList.remove('hidden');
+            else clearSearchBtn.classList.add('hidden');
+            applyFilterAndRender();
+        });
+        function clearSearch() { searchInput.value = ''; clearSearchBtn.classList.add('hidden'); applyFilterAndRender(); }
+
+        // Dark Mode Controller
+        function toggleDarkMode() {
+            document.documentElement.classList.toggle('dark');
+            const isDark = document.documentElement.classList.contains('dark');
+            localStorage.setItem('theme', isDark ? 'dark' : 'light');
+            document.getElementById('darkModeIcon').className = isDark ? 'fas fa-sun text-yellow-400' : 'fas fa-moon';
+            if(incChartInst && expChartInst) updateCharts(filteredTransactions);
+        }
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+            document.getElementById('darkModeIcon').className = 'fas fa-sun text-yellow-400';
+        }
+
+        document.getElementById('monthSelector').value = currentViewMonth;
+        document.getElementById('monthSelector').addEventListener('change', (e) => { currentViewMonth = e.target.value; applyFilterAndRender(); });
+
+        function showMessage(title, text, type = 'info', confirmCallback = null) {
+            const modal = document.getElementById('customMessageModal');
+            document.getElementById('msgTitle').innerText = title;
+            document.getElementById('msgText').innerText = text;
+            
+            const iconEl = document.getElementById('msgIcon');
+            if(type === 'error') iconEl.innerHTML = '<i class="fas fa-exclamation-circle text-red-500"></i>';
+            else if(type === 'success') iconEl.innerHTML = '<i class="fas fa-check-circle text-green-500"></i>';
+            else if(type === 'warning') iconEl.innerHTML = '<i class="fas fa-exclamation-triangle text-yellow-500"></i>';
+            else iconEl.innerHTML = '<i class="fas fa-info-circle text-blue-500"></i>';
+
+            const btnContainer = document.getElementById('msgButtons');
+            btnContainer.innerHTML = '';
+
+            if (confirmCallback) {
+                const cancelBtn = document.createElement('button');
+                cancelBtn.className = 'px-4 py-2 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded font-semibold transition hover:bg-gray-300 text-sm active:scale-95';
+                cancelBtn.innerText = 'Cancel';
+                cancelBtn.onclick = () => { modal.classList.add('hidden'); };
+
+                const confirmBtn = document.createElement('button');
+                confirmBtn.className = `px-4 py-2 text-white rounded font-bold transition text-sm active:scale-95 ${type==='error'?'bg-red-600 hover:bg-red-700':'bg-blue-600 hover:bg-blue-700'}`;
+                confirmBtn.innerText = 'Confirm';
+                confirmBtn.onclick = () => { modal.classList.add('hidden'); confirmCallback(); };
+
+                btnContainer.appendChild(cancelBtn); btnContainer.appendChild(confirmBtn);
+            } else {
+                const okBtn = document.createElement('button');
+                okBtn.className = 'px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded font-bold transition text-sm active:scale-95';
+                okBtn.innerText = 'OK';
+                okBtn.onclick = () => { modal.classList.add('hidden'); };
+                btnContainer.appendChild(okBtn);
+            }
+            modal.classList.remove('hidden');
+        }
+
+        function toggleProductSelection() {
+            const catSelect = document.getElementById('txnCat');
+            const customCatInput = document.getElementById('txnCatCustom');
+            const productSection = document.getElementById('productSelectionSection');
+            
+            if (catSelect.value === 'Other') {
+                customCatInput.classList.remove('hidden');
+            } else {
+                customCatInput.classList.add('hidden'); customCatInput.value = '';
+            }
+
+            if (catSelect.value === 'Membership Drive') {
+                productSection.classList.remove('hidden');
+                document.getElementById('txnType').value = 'income'; 
+                document.querySelectorAll('input[name="memProduct"]').forEach(checkbox => checkbox.checked = false);
+                calculateProductTotal();
+            } else {
+                productSection.classList.add('hidden');
+            }
+        }
+
+        function calculateProductTotal() {
+            const amountInput = document.getElementById('txnAmount');
+            const descInput = document.getElementById('txnDesc');
+            let totalAmount = 0; let selectedProducts = [];
+
+            document.querySelectorAll('input[name="memProduct"]:checked').forEach(checkbox => {
+                totalAmount += parseFloat(checkbox.value); 
+                selectedProducts.push(checkbox.getAttribute('data-name')); 
+            });
+            
+            amountInput.value = totalAmount > 0 ? totalAmount : '';
+            if (selectedProducts.length > 0) {
+                descInput.value = selectedProducts.join(', ');
+            } else {
+                descInput.value = '';
+            }
+        }
+
+        async function fetchTransactions() {
+            const syncBtn = document.getElementById('syncBtn');
+            syncBtn.classList.add('animate-spin', 'text-blue-400');
+            
+            try {
+                if (!navigator.onLine) throw new Error("Offline");
+                const response = await fetch(GAS_URL);
+                const data = await response.json();
+                transactions = data.transactions || [];
+                startingBalances = data.balances || {};
+                
+                localStorage.setItem('auditor_cache_txns', JSON.stringify(transactions));
+                localStorage.setItem('auditor_cache_bals', JSON.stringify(startingBalances));
+                
+                if (offlineQueue.length > 0) syncOfflineQueue();
+                else { applyFilterAndRender(); document.getElementById('tableFooterMsg').innerText = `Live sync complete.`; }
+            } catch (err) {
+                const cachedTxns = localStorage.getItem('auditor_cache_txns');
+                const cachedBals = localStorage.getItem('auditor_cache_bals');
+                if (cachedTxns) transactions = JSON.parse(cachedTxns);
+                if (cachedBals) startingBalances = JSON.parse(cachedBals);
+                
+                document.getElementById('tableFooterMsg').innerHTML = `<span class="text-orange-500 font-bold"><i class="fas fa-wifi-slash"></i> Offline mode. Showing cached data.</span>`;
+                applyFilterAndRender();
+            } finally { syncBtn.classList.remove('animate-spin', 'text-blue-400'); }
+        }
+
+        function saveToOfflineQueue(payload) {
+            offlineQueue.push(payload);
+            localStorage.setItem('auditor_offline_queue', JSON.stringify(offlineQueue));
+            document.getElementById('tableFooterMsg').innerHTML = `<span class="text-amber-500 font-bold"><i class="fas fa-cloud-upload-alt"></i> Saved to local queue. Auto-sync pending...</span>`;
+        }
+
+        let isSyncing = false;
+        async function syncOfflineQueue() {
+            if(offlineQueue.length === 0 || isSyncing) return;
+            isSyncing = true;
+            document.getElementById('tableFooterMsg').innerHTML = `<span class="text-blue-500 font-bold"><i class="fas fa-sync-alt fa-spin"></i> Auto-syncing pending records...</span>`;
+            
+            let remainingQueue = [];
+            let hasSuccess = false;
+            
+            for (let i = 0; i < offlineQueue.length; i++) {
+                try { 
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 8000); 
+                    
+                    const res = await fetch(GAS_URL, { 
+                        method: 'POST', body: JSON.stringify(offlineQueue[i]), signal: controller.signal
+                    });
+                    
+                    clearTimeout(timeoutId);
+                    if (res.ok) hasSuccess = true; else remainingQueue.push(offlineQueue[i]);
+                } catch(e) { remainingQueue.push(offlineQueue[i]); }
+            }
+            
+            offlineQueue = remainingQueue;
+            localStorage.setItem('auditor_offline_queue', JSON.stringify(offlineQueue));
+            
+            if(offlineQueue.length === 0) {
+                if (hasSuccess) fetchTransactions(); 
+            } else {
+                document.getElementById('tableFooterMsg').innerHTML = `<span class="text-amber-600 font-bold"><i class="fas fa-exclamation-triangle"></i> Sync paused (Slow internet). Will retry.</span>`;
+            }
+            isSyncing = false;
+        }
+
+        setInterval(() => { if (navigator.onLine && offlineQueue.length > 0 && !isSyncing) syncOfflineQueue(); }, 15000);
+        if(GAS_URL.startsWith("http")) fetchTransactions();
+
+        const formatDate = (dateString) => {
+            const d = new Date(dateString);
+            const y = d.getFullYear(); const m = String(d.getMonth() + 1).padStart(2, '0'); const day = String(d.getDate()).padStart(2, '0');
+            let h = d.getHours(); const min = String(d.getMinutes()).padStart(2, '0'); const ampm = h >= 12 ? 'PM' : 'AM';
+            h = h % 12; h = h ? h : 12; 
+            return `${y}-${m}-${day} <span class="text-[10px] text-gray-400 ml-1 block sm:inline">${String(h).padStart(2, '0')}:${min} ${ampm}</span>`;
+        };
+        const formatCurrency = (amount) => parseFloat(amount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+        
+        function getDirectImageUrl(url) {
+            if (!url) return '';
+            const match = url.match(/id=([^&]+)/);
+            if (match && match[1]) return `https://drive.google.com/thumbnail?id=${match[1]}&sz=w1200`;
+            return url;
+        }
+
+        function sortTable(column) {
+            if (currentSort.column === column) currentSort.asc = !currentSort.asc;
+            else { currentSort.column = column; currentSort.asc = true; }
+            applyFilterAndRender();
+        }
+
+        function exportToCSV() {
+            if (filteredTransactions.length === 0) { showMessage("No Data", "No records to export for this view.", "warning"); return; }
+            let csvContent = "Date,Category,Description,Reference No,Debit (-),Credit (+),Calculated Balance,Status,Edit Count,Last Edited\n";
+            filteredTransactions.forEach(t => {
+                let date = t.date ? t.date.replace('T', ' ') : '';
+                let category = t.category || 'Uncategorized';
+                let desc = t.description ? `"${t.description.replace(/"/g, '""')}"` : '';
+                let refNo = t.refNo ? `"${t.refNo.replace(/"/g, '""')}"` : '';
+                let debit = t.debit || ''; let credit = t.credit || '';
+                let balance = t.calculatedBalance || '';
+                let status = t._isOfflinePending ? 'Pending Sync' : (t.visibility || 'private');
+                let eCount = t.editCount || 0; let eDate = t.lastEdited ? t.lastEdited.replace('T', ' ') : '';
+                csvContent += `${date},"${category}",${desc},${refNo},${debit},${credit},${balance},${status},${eCount},${eDate}\n`;
+            });
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a"); link.setAttribute("href", url);
+            link.setAttribute("download", `Transactions_Export.csv`);
+            link.style.display = 'none'; document.body.appendChild(link); link.click(); document.body.removeChild(link);
+        }
+
+        function applyFilterAndRender() {
+            const query = searchInput.value.toLowerCase();
+            let monthlyTxns = transactions.filter(t => t.date && t.date.startsWith(currentViewMonth)).sort((a, b) => new Date(a.date) - new Date(b.date));
+            let startBalObj = startingBalances[currentViewMonth] || { amount: 0, lastModified: "Never" };
+            let currentBal = startBalObj.amount || 0;
+            
+            monthlyTxns.forEach(txn => {
+                if (txn.credit) currentBal += txn.credit;
+                if (txn.debit) currentBal -= txn.debit;
+                txn.calculatedBalance = currentBal;
+            });
+            
+            if(query) {
+                filteredTransactions = monthlyTxns.filter(t => {
+                    const safeDate = t.date ? t.date.toLowerCase() : '';
+                    return (t.description && t.description.toLowerCase().includes(query)) ||
+                           (t.category && t.category.toLowerCase().includes(query)) || (safeDate.includes(query));
+                });
+            } else filteredTransactions = [...monthlyTxns];
+            
+            filteredTransactions.sort((a, b) => {
+                let valA = a[currentSort.column]; let valB = b[currentSort.column];
+                if (currentSort.column === 'date') { valA = new Date(valA).getTime(); valB = new Date(valB).getTime(); }
+                if (valA < valB) return currentSort.asc ? -1 : 1;
+                if (valA > valB) return currentSort.asc ? 1 : -1;
+                return 0;
+            });
+            
+            renderDashboard(startBalObj.amount, currentBal, startBalObj.lastModified);
+        }
+
+        function renderDashboard(startBal, finalBal, lastModified) {
+            const tbody = document.getElementById('tableBody');
+            tbody.innerHTML = ''; 
+            
+            let totalIn = 0; let totalOut = 0; let campMemTotal = 0; let campSLUTotal = 0;
+
+            transactions.filter(t => t.date && t.date.startsWith(currentViewMonth)).forEach(t => { 
+                totalIn += (t.credit||0); totalOut += (t.debit||0); 
+            });
+
+            transactions.forEach(t => {
+                if(t.category === 'Membership Drive') campMemTotal += (t.credit || 0);
+                if(t.category === 'SLU Univ Week') campSLUTotal += (t.credit || 0);
+            });
+
+            document.getElementById('campMembershipTotal').innerText = "₱" + formatCurrency(campMemTotal);
+            document.getElementById('campSLUTotal').innerText = "₱" + formatCurrency(campSLUTotal);
+
+            if (filteredTransactions.length === 0) {
+                tbody.innerHTML += `<tr><td colspan="10" class="py-8 text-center text-gray-400 italic text-sm">No transactions found.</td></tr>`;
+            } else {
+                filteredTransactions.forEach((txn, index) => {
+                    const row = document.createElement('tr');
+                    row.className = `border-b border-gray-100 dark:border-gray-700 transition hover:bg-blue-50 dark:hover:bg-gray-700 ${index % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-blue-50/30 dark:bg-gray-800/80'}`;
+                    
+                    let statusHtml = txn._isOfflinePending ? 
+                        '<span class="text-orange-500 font-bold" title="Syncing..."><i class="fas fa-cog fa-spin"></i></span>' : 
+                        (txn.visibility === 'public' ? '<span class="text-green-500"><i class="fas fa-globe"></i> Pub</span>' : '<span class="text-red-400"><i class="fas fa-lock"></i> Priv</span>');
+                    
+                    const balClass = txn.calculatedBalance < 0 ? 'text-red-600 dark:text-red-400 font-bold' : 'text-gray-800 dark:text-gray-200 font-medium';
+                    
+                    let catBadgeClass = "bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-300 border-gray-200 dark:border-gray-600";
+                    if(txn.category === 'Membership Drive') catBadgeClass = "bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900/40 dark:text-purple-300";
+                    if(txn.category === 'SLU Univ Week') catBadgeClass = "bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/40 dark:text-amber-300";
+
+                    let editBadge = '';
+                    if (txn.editCount > 0) {
+                        editBadge = `<div class="mt-1"><button onclick="showAuditHistory('${txn.id}')" class="text-[10px] font-bold text-amber-600 bg-amber-100 dark:bg-amber-900/40 dark:text-amber-400 px-2 py-1 rounded shadow-sm border border-amber-200 dark:border-amber-700 hover:bg-amber-200 transition cursor-pointer w-full text-center whitespace-nowrap active:scale-95"><i class="fas fa-history mr-1"></i> Edited (${txn.editCount}x)</button></div>`;
+                    }
+
+                    row.innerHTML = `
+                        <td class="py-3 px-3 text-center align-middle"><input type="checkbox" class="row-checkbox cursor-pointer scale-125" value="${txn.id}" onchange="updateBulkActionUI()"></td>
+                        <td class="py-3 px-3 text-gray-600 dark:text-gray-400 font-mono text-xs align-middle whitespace-nowrap">${formatDate(txn.date)}</td>
+                        <td class="py-3 px-3 align-middle">
+                            <span class="${catBadgeClass} border text-[10px] font-bold px-2 py-0.5 rounded-full whitespace-nowrap block text-center truncate">${txn.category || 'Uncategorized'}</span>
+                            ${editBadge}
+                        </td>
+                        <td class="py-3 px-3 text-gray-800 dark:text-gray-200 font-medium text-sm align-middle min-w-[150px]">${txn.description}</td>
+                        <td class="py-3 px-3 text-gray-400 dark:text-gray-500 font-mono text-xs align-middle">${txn.refNo || '-'}</td>
+                        <td class="py-3 px-3 text-right text-red-500 dark:text-red-400 text-sm align-middle">${txn.debit ? formatCurrency(txn.debit) : ''}</td>
+                        <td class="py-3 px-3 text-right text-green-600 dark:text-green-400 text-sm align-middle">${txn.credit ? formatCurrency(txn.credit) : ''}</td>
+                        <td class="py-3 px-3 text-right ${balClass} text-sm align-middle">${formatCurrency(txn.calculatedBalance)}</td>
+                        <td class="py-3 px-3 text-center text-sm align-middle">${statusHtml}</td>
+                        <td class="py-3 px-3 text-center flex justify-center gap-1 align-middle">
+                            <button onclick="openEditModal('${txn.id}')" class="text-blue-500 hover:text-blue-700 bg-blue-50 dark:bg-gray-700 p-2 rounded transition shadow-sm active:scale-95 ${txn._isOfflinePending ? 'opacity-50 cursor-not-allowed' : ''}" title="Edit Record" ${txn._isOfflinePending ? 'disabled' : ''}><i class="fas fa-edit text-base"></i></button>
+                            ${txn.proofUrl ? `<button onclick="openImageModal('${txn.proofUrl}', '${txn.description ? txn.description.replace(/'/g, "\\'") : ''}')" class="text-green-500 hover:text-green-700 bg-green-50 dark:bg-gray-700 p-2 rounded transition shadow-sm active:scale-95" title="View Proof"><i class="fas fa-image text-base"></i></button>` : '<span class="text-gray-300 dark:text-gray-600 p-2">-</span>'}
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            }
+
+            document.getElementById('cardStartBal').innerText = formatCurrency(startBal);
+            document.getElementById('cardStartBalDate').innerText = `Updated: ${lastModified}`;
+            document.getElementById('cardTotalIn').innerText = formatCurrency(totalIn);
+            document.getElementById('cardTotalOut').innerText = formatCurrency(totalOut);
+            
+            const finalBalEl = document.getElementById('cardCurrentBal');
+            const balContainer = document.getElementById('balanceCardContainer');
+            const balLabel = document.getElementById('balanceLabel');
+            finalBalEl.innerText = formatCurrency(finalBal);
+
+            if (finalBal < 0) {
+                finalBalEl.className = "text-lg md:text-2xl font-bold text-red-600 dark:text-red-400 mt-1 truncate transition-colors duration-300";
+                balContainer.className = "bg-red-50 dark:bg-red-900/20 rounded-xl shadow-sm p-4 border-l-4 border-red-600 transition-colors duration-300";
+                balLabel.innerHTML = '<i class="fas fa-exclamation-triangle text-red-500 mr-1"></i> Negative Bal';
+                balLabel.className = "text-sm font-medium text-red-500 dark:text-red-400 truncate";
+            } else {
+                finalBalEl.className = "text-lg md:text-2xl font-bold text-gray-800 dark:text-white mt-1 truncate transition-colors duration-300";
+                balContainer.className = "bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 border-l-4 border-gray-800 dark:border-gray-500 transition-colors duration-300";
+                balLabel.innerHTML = 'Ending Balance';
+                balLabel.className = "text-sm font-medium text-gray-500 dark:text-gray-400 truncate";
+            }
+            updateCharts(filteredTransactions); updateBulkActionUI();
+        }
+
+        function updateCharts(txns) {
+            const incCtx = document.getElementById('incomeChart').getContext('2d');
+            const expCtx = document.getElementById('expenseChart').getContext('2d');
+            let incData = {}; let expData = {};
+            txns.forEach(t => {
+                if(t.credit) incData[t.category] = (incData[t.category] || 0) + t.credit;
+                if(t.debit) expData[t.category] = (expData[t.category] || 0) + t.debit;
+            });
+            if(incChartInst) incChartInst.destroy(); if(expChartInst) expChartInst.destroy();
+            
+            const isDark = document.documentElement.classList.contains('dark');
+            const textColor = isDark ? '#e5e7eb' : '#4b5563';
+            const pieOptions = { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { color: textColor, boxWidth: 10, font: {size: 10} } } } };
+            
+            incChartInst = new Chart(incCtx, {
+                type: 'doughnut',
+                data: { labels: Object.keys(incData), datasets: [{ data: Object.values(incData), backgroundColor: ['#10B981','#34D399','#6EE7B7','#059669','#047857','#8B5CF6','#F59E0B'], borderColor: isDark ? '#1f2937' : '#fff' }] },
+                options: pieOptions
+            });
+            expChartInst = new Chart(expCtx, {
+                type: 'doughnut',
+                data: { labels: Object.keys(expData), datasets: [{ data: Object.values(expData), backgroundColor: ['#EF4444','#F87171','#FCA5A5','#DC2626','#B91C1C'], borderColor: isDark ? '#1f2937' : '#fff' }] },
+                options: pieOptions
+            });
+        }
+
+        function showAuditHistory(id) {
+            const txn = transactions.find(t => String(t.id) === String(id));
+            const listEl = document.getElementById('auditHistoryList');
+            listEl.innerHTML = '';
+
+            if (txn && txn.editHistory) {
+                try {
+                    const history = typeof txn.editHistory === 'string' ? JSON.parse(txn.editHistory) : txn.editHistory;
+                    if (history.length > 0) {
+                        history.slice().reverse().forEach((log, i) => {
+                            let amtText = log.credit ? `<span class="text-green-600 font-bold">+ ₱${formatCurrency(log.credit)}</span>` : `<span class="text-red-500 font-bold">- ₱${formatCurrency(log.debit)}</span>`;
+                            listEl.innerHTML += `
+                                <div class="bg-white dark:bg-gray-800 p-3 rounded-lg border border-gray-200 dark:border-gray-700 shadow-sm text-sm">
+                                    <div class="flex justify-between items-center mb-2 border-b border-gray-100 dark:border-gray-700 pb-2">
+                                        <span class="text-xs font-bold text-gray-500 dark:text-gray-400"><i class="fas fa-clock mr-1"></i> ${log.timestamp}</span>
+                                        <span class="text-[10px] bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300 px-2 py-0.5 rounded font-bold border border-amber-200 dark:border-amber-800">Version ${history.length - i}</span>
+                                    </div>
+                                    <div class="space-y-1">
+                                        <p class="text-gray-700 dark:text-gray-300"><span class="text-gray-400 dark:text-gray-500 text-xs w-12 inline-block">Date:</span> ${log.date}</p>
+                                        <p class="text-gray-700 dark:text-gray-300"><span class="text-gray-400 dark:text-gray-500 text-xs w-12 inline-block">Desc:</span> ${log.desc}</p>
+                                        <p class="text-gray-700 dark:text-gray-300"><span class="text-gray-400 dark:text-gray-500 text-xs w-12 inline-block">Cat:</span> ${log.cat}</p>
+                                        <p class="text-gray-700 dark:text-gray-300 mt-2 border-t border-gray-50 dark:border-gray-700 pt-1"><span class="text-gray-400 dark:text-gray-500 text-xs w-12 inline-block">Amount:</span> ${amtText}</p>
+                                    </div>
+                                </div>
+                            `;
+                        });
+                    } else listEl.innerHTML = '<p class="text-gray-500 italic text-center p-4">No history format found.</p>';
+                } catch(e) { listEl.innerHTML = '<p class="text-gray-500 italic text-center p-4">Could not parse history.</p>'; }
+            }
+            document.getElementById('auditHistoryModal').classList.remove('hidden');
+        }
+        function closeAuditModal() { document.getElementById('auditHistoryModal').classList.add('hidden'); }
+
+        function openTransactionModal() {
+            currentEditId = null; document.getElementById('txnModalTitle').innerText = "Record New Transaction";
+            const d = new Date(); const tz = d.getTimezoneOffset() * 60000;
+            document.getElementById('txnDate').value = (new Date(d - tz)).toISOString().slice(0, 16);
+            document.getElementById('txnRef').value = ''; document.getElementById('txnDesc').value = '';
+            document.getElementById('txnCat').value = ''; 
+            document.getElementById('txnCatCustom').value = ''; document.getElementById('txnCatCustom').classList.add('hidden');
+            document.getElementById('productSelectionSection').classList.add('hidden');
+            document.querySelectorAll('input[name="memProduct"]').forEach(checkbox => checkbox.checked = false);
+            document.getElementById('txnAmount').value = '';
+            document.getElementById('txnFile').value = ''; document.getElementById('txnType').value = 'income';
+            document.getElementById('transactionModal').classList.remove('hidden');
+        }
+
+        function openEditModal(id) {
+            const txn = transactions.find(t => String(t.id) === String(id));
+            if (!txn) { showMessage("Error", "Record not found.", "error"); return; }
+            if (txn._isOfflinePending) { showMessage("Pending", "Cannot edit while syncing.", "warning"); return; }
+            
+            currentEditId = id; document.getElementById('txnModalTitle').innerText = "Edit Transaction";
+            let formattedDate = "";
+            if (txn.date) {
+                const d = new Date(txn.date); const tz = d.getTimezoneOffset() * 60000;
+                formattedDate = (new Date(d - tz)).toISOString().slice(0, 16);
+            }
+            
+            document.getElementById('txnDate').value = formattedDate;
+            document.getElementById('txnRef').value = txn.refNo || ''; document.getElementById('txnDesc').value = txn.description || '';
+            
+            const selectEl = document.getElementById('txnCat'); const customInput = document.getElementById('txnCatCustom');
+            const options = Array.from(selectEl.options).map(opt => opt.value);
+            
+            if(options.includes(txn.category)) {
+                selectEl.value = txn.category || ''; customInput.classList.add('hidden'); customInput.value = '';
+            } else {
+                selectEl.value = 'Other'; customInput.classList.remove('hidden'); customInput.value = txn.category || '';
+            }
+
+            document.getElementById('productSelectionSection').classList.add('hidden');
+            document.querySelectorAll('input[name="memProduct"]').forEach(checkbox => checkbox.checked = false);
+            document.getElementById('txnVis').value = txn.visibility || 'private';
+            document.getElementById('txnType').value = txn.debit ? 'expense' : 'income';
+            document.getElementById('txnAmount').value = txn.debit || txn.credit || '';
+            document.getElementById('txnFile').value = '';
+            document.getElementById('transactionModal').classList.remove('hidden');
+        }
+        function closeTransactionModal() { document.getElementById('transactionModal').classList.add('hidden'); }
+        
+        function openImageModal(url, desc) {
+            document.getElementById('imgModalTitle').innerText = desc || "Attached Proof";
+            document.getElementById('modalImage').src = getDirectImageUrl(url);
+            document.getElementById('imageModal').classList.remove('hidden');
+        }
+        function closeImageModal() { document.getElementById('imageModal').classList.add('hidden'); document.getElementById('modalImage').src = ''; }
+
+        function getBase64(file) {
+            return new Promise((resolve, reject) => {
+                const reader = new FileReader(); reader.readAsDataURL(file);
+                reader.onload = () => resolve(reader.result); reader.onerror = error => reject(error);
+            });
+        }
+
+        async function submitTransaction() {
+            const date = document.getElementById('txnDate').value; const refNo = document.getElementById('txnRef').value;
+            const desc = document.getElementById('txnDesc').value; 
+            let cat = document.getElementById('txnCat').value; if(cat === 'Other') cat = document.getElementById('txnCatCustom').value;
+            const vis = document.getElementById('txnVis').value; const type = document.getElementById('txnType').value;
+            const amtRaw = parseFloat(document.getElementById('txnAmount').value); const fileInput = document.getElementById('txnFile');
+
+            if (!date || !desc || !cat || isNaN(amtRaw) || amtRaw <= 0) {
+                showMessage("Missing Info", "Please fill in all required fields (*) with valid information.", "error"); return;
+            }
+
+            const actionType = currentEditId ? 'edit' : 'add';
+            const recordId = currentEditId ? currentEditId : ('TXN-' + Date.now());
+
+            const payload = {
+                action: actionType, id: String(recordId), date: date, refNo: refNo, description: desc, category: cat, visibility: vis,
+                debit: type === 'expense' ? amtRaw : null, credit: type === 'income' ? amtRaw : null, balance: 0 
+            };
+            
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                if (file.size > 2 * 1024 * 1024) { showMessage("File too large", "Select a file smaller than 2MB.", "error"); return; }
+                payload.base64 = await getBase64(file); payload.fileName = file.name;
+            }
+
+            const existingTxn = currentEditId ? transactions.find(t=>String(t.id)===String(currentEditId)) : null;
+            const tempTxn = {
+                id: payload.id, date: payload.date, description: payload.description, refNo: payload.refNo,
+                debit: payload.debit, credit: payload.credit, category: payload.category, visibility: payload.visibility,
+                proofUrl: existingTxn ? existingTxn.proofUrl : '', 
+                _isOfflinePending: true, editCount: existingTxn ? (existingTxn.editCount + (actionType==='edit'?1:0)) : 0, editHistory: existingTxn ? existingTxn.editHistory : "[]"
+            };
+
+            if (actionType === 'add') transactions.push(tempTxn);
+            else { const idx = transactions.findIndex(t => String(t.id) === String(payload.id)); if(idx !== -1) transactions[idx] = tempTxn; }
+            
+            closeTransactionModal();
+            applyFilterAndRender(); 
+
+            if (!navigator.onLine) { saveToOfflineQueue(payload); return; }
+            
+            document.getElementById('tableFooterMsg').innerHTML = '<span class="text-blue-500 font-bold"><i class="fas fa-cog fa-spin"></i> Saving in background...</span>';
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 8000); 
+                
+                const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload), signal: controller.signal });
+                clearTimeout(timeoutId);
+                
+                if(res.ok) {
+                    const resData = await res.json();
+                    const updatedIdx = transactions.findIndex(t => String(t.id) === String(payload.id));
+                    if(updatedIdx !== -1) {
+                        transactions[updatedIdx]._isOfflinePending = false; 
+                        if (resData.fileUrl) transactions[updatedIdx].proofUrl = resData.fileUrl; 
+                    }
+                    applyFilterAndRender();
+                    document.getElementById('tableFooterMsg').innerText = "Record saved successfully.";
+                } else { saveToOfflineQueue(payload); }
+            } catch(e) { saveToOfflineQueue(payload); }
+        }
+
+        function toggleSelectAll() {
+            const isChecked = document.getElementById('selectAllCb').checked;
+            document.querySelectorAll('.row-checkbox').forEach(cb => cb.checked = isChecked); updateBulkActionUI();
+        }
+
+        function updateBulkActionUI() {
+            const selected = document.querySelectorAll('.row-checkbox:checked');
+            const bar = document.getElementById('bulkActionBar');
+            document.getElementById('bulkCountTxt').innerText = `${selected.length} selected`;
+            if(selected.length > 0) { bar.classList.remove('hidden'); bar.classList.add('flex'); } 
+            else { bar.classList.add('hidden'); bar.classList.remove('flex'); document.getElementById('selectAllCb').checked = false; }
+        }
+
+        async function handleBulkAction(action) {
+            const selected = Array.from(document.querySelectorAll('.row-checkbox:checked')).map(cb => cb.value);
+            if(selected.length === 0) return;
+
+            let actionText = action === 'delete' ? 'delete' : `make ${action}`;
+            showMessage("Confirm Action", `Are you sure you want to ${actionText} ${selected.length} records?`, "warning", async () => {
+                document.getElementById('bulkCountTxt').innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+                
+                for(const id of selected) {
+                    const payload = action === 'delete' ? { action: 'delete', id: String(id) } : { action: 'toggleVisibility', id: String(id), visibility: action };
+                    
+                    const idx = transactions.findIndex(t => String(t.id) === String(id));
+                    if(idx !== -1) {
+                        if(action === 'delete') transactions.splice(idx, 1);
+                        else {
+                            transactions[idx].visibility = action;
+                            transactions[idx]._isOfflinePending = true;
+                        }
+                    }
+
+                    applyFilterAndRender(); 
+
+                    if(!navigator.onLine) { saveToOfflineQueue(payload); } 
+                    else { 
+                        try { 
+                            const controller = new AbortController();
+                            const timeoutId = setTimeout(() => controller.abort(), 8000);
+                            const res = await fetch(GAS_URL, { method: 'POST', body: JSON.stringify(payload), signal: controller.signal }); 
+                            clearTimeout(timeoutId);
+
+                            if (res.ok && action !== 'delete') {
+                                const updatedIdx = transactions.findIndex(t => String(t.id) === String(id));
+                                if (updatedIdx !== -1) transactions[updatedIdx]._isOfflinePending = false;
+                            }
+                        } catch(e) { saveToOfflineQueue(payload); } 
+                    }
+                }
+                
+                document.getElementById('selectAllCb').checked = false; updateBulkActionUI();
+                applyFilterAndRender();
+                document.getElementById('tableFooterMsg').innerText = `Successfully updated ${selected.length} records.`;
+            });
+        }
+
+        window.addEventListener('online', () => {
+            document.getElementById('tableFooterMsg').innerHTML = '<span class="text-blue-600 font-bold"><i class="fas fa-wifi"></i> Connection restored. Auto-syncing...</span>';
+            if(offlineQueue.length > 0) syncOfflineQueue(); else fetchTransactions();
+        });
+        window.addEventListener('offline', () => { document.getElementById('tableFooterMsg').innerHTML = '<span class="text-red-600 font-bold"><i class="fas fa-wifi-slash"></i> Offline mode.</span>'; });
+        window.addEventListener('orientationchange', () => { setTimeout(() => { if(incChartInst && expChartInst) updateCharts(filteredTransactions); }, 200); });
+    </script>
+</body>
+</html>
