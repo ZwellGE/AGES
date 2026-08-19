@@ -12,11 +12,6 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> 
     
     <style>
-        .table-container::-webkit-scrollbar { height: 6px; width: 6px; }
-        .table-container::-webkit-scrollbar-track { background: #f1f1f1; border-radius: 4px; }
-        .table-container::-webkit-scrollbar-thumb { background: #c1c1c1; border-radius: 4px; }
-        .table-container::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
-        .table-container { -webkit-overflow-scrolling: touch; } 
         .brand-header { background-color: #00529B; }
         .modal-animate { transition: transform 0.2s ease-out, opacity 0.2s ease-out; }
     </style>
@@ -47,7 +42,7 @@
                     <h1 class="text-xl md:text-3xl font-bold text-[#003875] dark:text-blue-400 tracking-tight">Admin Dashboard & Ledger</h1>
                     <div class="flex items-center gap-2 mt-0.5">
                         <span class="bg-red-100 text-red-800 text-[10px] md:text-xs font-bold px-2 py-0.5 rounded uppercase tracking-wide border border-red-200"><i class="fas fa-lock mr-1"></i> Secure POS</span>
-                        <p class="text-gray-500 dark:text-gray-400 text-xs md:text-sm font-medium truncate">Funds & Expenses Terminal</p>
+                        <p class="text-gray-500 dark:text-gray-400 text-xs md:text-sm font-medium truncate">Offline-First Mobile Terminal</p>
                     </div>
                 </div>
             </div>
@@ -134,28 +129,35 @@
             </div>
         </div>
 
-        <!-- Transaction Table -->
+        <!-- TRANSACTION CONTAINER: TABLE (Desktop) & CARD STACK (Mobile) -->
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-gray-200 dark:border-gray-700 transition-colors">
-            <div class="overflow-x-auto overflow-y-auto max-h-[500px] md:max-h-[600px] table-container relative">
-                <table class="w-full text-left border-collapse min-w-[850px]">
+            
+            <!-- Desktop Table View (Hidden on Small Mobile Screens) -->
+            <div class="hidden md:block overflow-x-auto max-h-[600px] relative">
+                <table class="w-full text-left border-collapse">
                     <thead class="sticky top-0 z-10 shadow-md">
                         <tr class="brand-header text-white text-xs md:text-sm">
                             <th class="py-3 px-3 text-center w-12"><input type="checkbox" id="selectAllCb" class="cursor-pointer scale-125" onchange="toggleSelectAll()"></th>
-                            <th class="py-3 px-3 font-semibold cursor-pointer hover:bg-blue-800 w-36" onclick="sortTable('date')">Date & Time <i class="fas fa-sort ml-1 opacity-50"></i></th>
-                            <th class="py-3 px-3 font-semibold cursor-pointer hover:bg-blue-800 w-28" onclick="sortTable('category')">Category <i class="fas fa-sort ml-1 opacity-50"></i></th>
-                            <th class="py-3 px-3 font-semibold min-w-[150px]">Description</th>
-                            <th class="py-3 px-3 font-semibold w-32">POS Method</th>
-                            <th class="py-3 px-3 font-semibold text-right w-24">Expense (-)</th>
-                            <th class="py-3 px-3 font-semibold text-right w-24">Funds (+)</th>
-                            <th class="py-3 px-3 font-semibold text-right w-28">Balance</th>
-                            <th class="py-3 px-3 font-semibold text-center w-20 cursor-pointer hover:bg-blue-800" onclick="sortTable('visibility')">Status <i class="fas fa-sort ml-1 opacity-50"></i></th>
-                            <th class="py-3 px-3 font-semibold text-center w-24">Actions</th>
+                            <th class="py-3 px-3 font-semibold cursor-pointer hover:bg-blue-800" onclick="sortTable('date')">Date & Time <i class="fas fa-sort ml-1 opacity-50"></i></th>
+                            <th class="py-3 px-3 font-semibold cursor-pointer hover:bg-blue-800" onclick="sortTable('category')">Category <i class="fas fa-sort ml-1 opacity-50"></i></th>
+                            <th class="py-3 px-3 font-semibold">Description</th>
+                            <th class="py-3 px-3 font-semibold">POS Method</th>
+                            <th class="py-3 px-3 font-semibold text-right">Expense (-)</th>
+                            <th class="py-3 px-3 font-semibold text-right">Funds (+)</th>
+                            <th class="py-3 px-3 font-semibold text-right">Balance</th>
+                            <th class="py-3 px-3 font-semibold text-center cursor-pointer hover:bg-blue-800" onclick="sortTable('visibility')">Status <i class="fas fa-sort ml-1 opacity-50"></i></th>
+                            <th class="py-3 px-3 font-semibold text-center">Actions</th>
                         </tr>
                     </thead>
                     <tbody id="tableBody" class="text-xs md:text-sm text-gray-700 dark:text-gray-300">
                         <tr><td colspan="10" class="text-center py-10 text-gray-500"><i class="fas fa-spinner fa-spin mr-2"></i> Loading Data...</td></tr>
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Mobile Card Stack View (Visible ONLY on Small Mobile Screens - NO HORIZONTAL SCROLLING!) -->
+            <div class="md:hidden p-3 space-y-3" id="mobileCardContainer">
+                <div class="text-center py-8 text-gray-400"><i class="fas fa-spinner fa-spin mr-2"></i> Loading mobile view...</div>
             </div>
             
             <div class="bg-gray-50 dark:bg-gray-900 p-3 md:p-4 border-t border-gray-200 dark:border-gray-700 flex justify-between items-center text-xs md:text-sm transition-colors">
@@ -421,7 +423,6 @@
             }
         }
 
-        // Automatic local device download backup for camera captures
         function handleFileAttachment(input) {
             const label = document.getElementById('fileChosenLabel');
             const clearBtn = document.getElementById('clearFileBtn');
@@ -430,7 +431,6 @@
                 label.innerText = file.name;
                 clearBtn.classList.remove('hidden');
 
-                // AUTO-SAVE BACKUP TO PHONE DEVICE GALLERY
                 try {
                     const blobUrl = URL.createObjectURL(file);
                     const backupLink = document.createElement('a');
@@ -712,7 +712,9 @@
 
         function renderDashboard(startBal, finalBal, lastModified) {
             const tbody = document.getElementById('tableBody');
+            const mobileCardContainer = document.getElementById('mobileCardContainer');
             tbody.innerHTML = ''; 
+            mobileCardContainer.innerHTML = '';
             
             let totalIn = 0; let totalOut = 0; let campMemTotal = 0; let campSLUTotal = 0;
 
@@ -729,9 +731,11 @@
             document.getElementById('campSLUTotal').innerText = "₱" + formatCurrency(campSLUTotal);
 
             if (filteredTransactions.length === 0) {
-                tbody.innerHTML += `<tr><td colspan="10" class="py-8 text-center text-gray-400 italic text-sm">No transactions found.</td></tr>`;
+                tbody.innerHTML = `<tr><td colspan="10" class="py-8 text-center text-gray-400 italic text-sm">No transactions found.</td></tr>`;
+                mobileCardContainer.innerHTML = `<div class="py-8 text-center text-gray-400 italic text-sm bg-white dark:bg-gray-800 rounded-xl p-4">No transactions found for this view.</div>`;
             } else {
                 filteredTransactions.forEach((txn, index) => {
+                    // DESKTOP TABLE ROW
                     const row = document.createElement('tr');
                     row.className = `border-b border-gray-100 dark:border-gray-700 transition hover:bg-blue-50 dark:hover:bg-gray-700 ${index % 2 === 0 ? 'bg-white dark:bg-gray-800' : 'bg-blue-50/30 dark:bg-gray-800/80'}`;
                     
@@ -769,6 +773,45 @@
                         </td>
                     `;
                     tbody.appendChild(row);
+
+                    // MOBILE CARD STACK VIEW (Zero Horizontal Scrolling!)
+                    const card = document.createElement('div');
+                    card.className = "bg-white dark:bg-gray-800 rounded-xl p-3.5 shadow-sm border border-gray-200 dark:border-gray-700 space-y-2.5";
+                    
+                    let amountTxt = txn.credit ? `<span class="text-green-600 dark:text-green-400 font-black">+₱${formatCurrency(txn.credit)}</span>` : `<span class="text-red-500 dark:text-red-400 font-black">-₱${formatCurrency(txn.debit)}</span>`;
+                    
+                    card.innerHTML = `
+                        <div class="flex items-center justify-between border-b border-gray-100 dark:border-gray-700 pb-2">
+                            <div class="flex items-center gap-2">
+                                <input type="checkbox" class="row-checkbox cursor-pointer scale-125" value="${txn.id}" onchange="updateBulkActionUI()">
+                                <span class="${catBadgeClass} border text-[10px] font-bold px-2 py-0.5 rounded-full">${txn.category || 'Uncategorized'}</span>
+                            </div>
+                            <div class="text-right">
+                                <span class="text-sm font-black">${amountTxt}</span>
+                            </div>
+                        </div>
+                        <div class="space-y-1">
+                            <p class="text-xs font-bold text-gray-800 dark:text-white flex items-center justify-between">
+                                <span class="truncate pr-2">${txn.description}</span>
+                                <span class="text-[10px] font-mono text-gray-400 font-normal shrink-0">${txn.refNo || 'POS'}</span>
+                            </p>
+                            <div class="flex items-center justify-between text-[11px] text-gray-500 dark:text-gray-400 pt-1">
+                                <span><i class="far fa-clock mr-1"></i> ${formatDate(txn.date)}</span>
+                                <span class="font-bold text-indigo-600 dark:text-indigo-400 font-mono">Bal: ₱${formatCurrency(txn.calculatedBalance)}</span>
+                            </div>
+                        </div>
+                        <div class="flex items-center justify-between pt-2 border-t border-gray-100 dark:border-gray-700/60">
+                            <div class="flex items-center gap-1.5">
+                                ${statusHtml}
+                                ${txn.editCount > 0 ? `<span class="text-[10px] bg-amber-100 text-amber-800 px-1.5 rounded font-bold">Edited (${txn.editCount}x)</span>` : ''}
+                            </div>
+                            <div class="flex items-center gap-1.5">
+                                ${txn.proofUrl ? `<button onclick="openImageModal('${txn.proofUrl}', '${txn.description ? txn.description.replace(/'/g, "\\'") : ''}')" class="px-2.5 py-1 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-600 rounded text-xs font-bold"><i class="fas fa-image mr-1"></i> Proof</button>` : ''}
+                                <button onclick="openEditModal('${txn.id}')" class="px-2.5 py-1 bg-blue-50 dark:bg-blue-950/40 text-blue-600 rounded text-xs font-bold"><i class="fas fa-edit mr-1"></i> Edit</button>
+                            </div>
+                        </div>
+                    `;
+                    mobileCardContainer.appendChild(card);
                 });
             }
 
@@ -966,7 +1009,6 @@
                     refNo = 'Cash POS (Fast Entry)';
                 }
             } else {
-                // Online payment requires reference or photo proof
                 if (!refNo.trim() && fileInput.files.length === 0) {
                     showMessage("Reference Required", "For Online Payments, please either provide a Reference No. or attach a receipt photo.", "warning");
                     return;
