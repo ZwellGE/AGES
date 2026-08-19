@@ -18,13 +18,12 @@
         .table-container::-webkit-scrollbar-thumb:hover { background: #a8a8a8; }
         .table-container { -webkit-overflow-scrolling: touch; } 
         .brand-header { background-color: #00529B; }
-        
-        /* Hardware Acceleration for fast animations */
         .modal-animate { transition: transform 0.2s ease-out, opacity 0.2s ease-out; }
     </style>
 </head>
 <body class="bg-gray-100 dark:bg-gray-900 min-h-screen p-2 md:p-6 font-sans transition-colors duration-300">
 
+    <!-- Custom Message Modal -->
     <div id="customMessageModal" class="fixed inset-0 bg-black bg-opacity-60 hidden flex items-center justify-center z-[70] p-4 backdrop-blur-sm transition-opacity">
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl overflow-hidden max-w-sm w-full transform transition-all border border-gray-200 dark:border-gray-700">
             <div class="p-6 text-center">
@@ -38,23 +37,24 @@
 
     <div class="max-w-7xl mx-auto space-y-4 md:space-y-6">
         
+        <!-- Top Header & Controls -->
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 md:p-6 flex flex-col lg:flex-row justify-between items-start lg:items-center gap-4 border border-gray-200 dark:border-gray-700 transition-colors">
             <div class="flex items-center gap-3 md:gap-4 w-full lg:w-auto">
                 <div class="w-10 h-10 md:w-12 md:h-12 bg-blue-100 text-[#00529B] rounded-xl flex items-center justify-center shrink-0 shadow-sm border border-blue-200">
-                    <i class="fas fa-shield-alt text-xl md:text-2xl"></i>
+                    <i class="fas fa-cash-register text-xl md:text-2xl"></i>
                 </div>
                 <div class="flex-1">
-                    <h1 class="text-xl md:text-3xl font-bold text-[#003875] dark:text-blue-400 tracking-tight">Admin Dashboard</h1>
+                    <h1 class="text-xl md:text-3xl font-bold text-[#003875] dark:text-blue-400 tracking-tight">Admin Dashboard & Ledger</h1>
                     <div class="flex items-center gap-2 mt-0.5">
-                        <span class="bg-red-100 text-red-800 text-[10px] md:text-xs font-bold px-2 py-0.5 rounded uppercase tracking-wide border border-red-200"><i class="fas fa-lock mr-1"></i> Private</span>
-                        <p class="text-gray-500 dark:text-gray-400 text-xs md:text-sm font-medium truncate">Secure Financial Hub</p>
+                        <span class="bg-red-100 text-red-800 text-[10px] md:text-xs font-bold px-2 py-0.5 rounded uppercase tracking-wide border border-red-200"><i class="fas fa-lock mr-1"></i> Secure POS</span>
+                        <p class="text-gray-500 dark:text-gray-400 text-xs md:text-sm font-medium truncate">Funds & Expenses Terminal</p>
                     </div>
                 </div>
             </div>
             
             <div class="flex flex-col sm:flex-row items-center gap-3 w-full lg:w-auto">
-                <button onclick="openTransactionModal()" class="w-full sm:w-auto bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-bold shadow-sm transition flex items-center justify-center gap-2 text-sm active:scale-95 whitespace-nowrap">
-                    <i class="fas fa-plus"></i> New Transaction
+                <button onclick="openTransactionModal()" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-lg font-bold shadow-sm transition flex items-center justify-center gap-2 text-sm active:scale-95 whitespace-nowrap">
+                    <i class="fas fa-cash-register"></i> New Transaction
                 </button>
                 <button onclick="exportToCSV()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white px-4 py-2 rounded-lg font-bold shadow-sm transition flex items-center justify-center gap-2 text-sm active:scale-95 whitespace-nowrap">
                     <i class="fas fa-file-excel"></i> Export CSV
@@ -79,6 +79,7 @@
             </div>
         </div>
 
+        <!-- Summary Metric Cards -->
         <div class="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
             <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 border-l-4 border-blue-500 relative group transition-colors">
                 <p class="text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400">Start Balance</p>
@@ -86,19 +87,20 @@
                 <p class="text-[9px] md:text-[10px] text-gray-400 mt-1 italic truncate" id="cardStartBalDate">Updated: Never</p>
             </div>
             <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 border-l-4 border-green-500 transition-colors">
-                <p class="text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400">Total In (+)</p>
+                <p class="text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400">Total Funds In (+)</p>
                 <h3 class="text-lg md:text-2xl font-bold text-green-600 dark:text-green-400 mt-1 truncate" id="cardTotalIn">0.00</h3>
             </div>
             <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 border-l-4 border-red-400 transition-colors">
-                <p class="text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400">Total Out (-)</p>
+                <p class="text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400">Total Expenses (-)</p>
                 <h3 class="text-lg md:text-2xl font-bold text-red-500 dark:text-red-400 mt-1 truncate" id="cardTotalOut">0.00</h3>
             </div>
             <div id="balanceCardContainer" class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 border-l-4 border-gray-800 dark:border-gray-500 transition-colors duration-300">
-                <p class="text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400 truncate" id="balanceLabel">Ending Balance</p>
+                <p class="text-xs md:text-sm font-medium text-gray-500 dark:text-gray-400 truncate" id="balanceLabel">Net Fund Balance</p>
                 <h3 class="text-lg md:text-2xl font-bold text-gray-800 dark:text-white mt-1 truncate transition-colors duration-300" id="cardCurrentBal">0.00</h3>
             </div>
         </div>
 
+        <!-- Campaign Badges -->
         <div class="grid grid-cols-2 gap-3 md:gap-4">
             <div class="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-gray-800 dark:to-gray-800 rounded-xl shadow-sm p-3 md:p-4 border border-purple-100 dark:border-gray-700 flex items-center justify-between">
                 <div>
@@ -120,17 +122,19 @@
             </div>
         </div>
 
+        <!-- Charts Grid -->
         <div class="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4 hidden sm:grid">
             <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-3 md:p-4 border border-gray-200 dark:border-gray-700 transition-colors">
-                <h3 class="text-xs md:text-sm font-semibold text-gray-600 dark:text-gray-300 mb-2 text-center">Income Breakdown</h3>
+                <h3 class="text-xs md:text-sm font-semibold text-gray-600 dark:text-gray-300 mb-2 text-center">Funds & Income Breakdown</h3>
                 <div class="h-[150px] md:h-[200px] flex justify-center"><canvas id="incomeChart"></canvas></div>
             </div>
             <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm p-3 md:p-4 border border-gray-200 dark:border-gray-700 transition-colors">
-                <h3 class="text-xs md:text-sm font-semibold text-gray-600 dark:text-gray-300 mb-2 text-center">Expense Breakdown</h3>
+                <h3 class="text-xs md:text-sm font-semibold text-gray-600 dark:text-gray-300 mb-2 text-center">Expenses Breakdown</h3>
                 <div class="h-[150px] md:h-[200px] flex justify-center"><canvas id="expenseChart"></canvas></div>
             </div>
         </div>
 
+        <!-- Transaction Table -->
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-sm overflow-hidden border border-gray-200 dark:border-gray-700 transition-colors">
             <div class="overflow-x-auto overflow-y-auto max-h-[500px] md:max-h-[600px] table-container relative">
                 <table class="w-full text-left border-collapse min-w-[850px]">
@@ -140,9 +144,9 @@
                             <th class="py-3 px-3 font-semibold cursor-pointer hover:bg-blue-800 w-36" onclick="sortTable('date')">Date & Time <i class="fas fa-sort ml-1 opacity-50"></i></th>
                             <th class="py-3 px-3 font-semibold cursor-pointer hover:bg-blue-800 w-28" onclick="sortTable('category')">Category <i class="fas fa-sort ml-1 opacity-50"></i></th>
                             <th class="py-3 px-3 font-semibold min-w-[150px]">Description</th>
-                            <th class="py-3 px-3 font-semibold w-24">Ref No.</th>
-                            <th class="py-3 px-3 font-semibold text-right w-24">Debit (-)</th>
-                            <th class="py-3 px-3 font-semibold text-right w-24">Credit (+)</th>
+                            <th class="py-3 px-3 font-semibold w-32">POS Method</th>
+                            <th class="py-3 px-3 font-semibold text-right w-24">Expense (-)</th>
+                            <th class="py-3 px-3 font-semibold text-right w-24">Funds (+)</th>
                             <th class="py-3 px-3 font-semibold text-right w-28">Balance</th>
                             <th class="py-3 px-3 font-semibold text-center w-20 cursor-pointer hover:bg-blue-800" onclick="sortTable('visibility')">Status <i class="fas fa-sort ml-1 opacity-50"></i></th>
                             <th class="py-3 px-3 font-semibold text-center w-24">Actions</th>
@@ -164,37 +168,49 @@
         </div>
     </div>
 
+    <!-- Bulk Actions Bar -->
     <div id="bulkActionBar" class="fixed bottom-0 left-0 right-0 bg-gray-900 dark:bg-black text-white p-3 md:p-4 flex flex-col sm:flex-row justify-between items-center z-40 hidden shadow-[0_-4px_6px_-1px_rgba(0,0,0,0.2)]">
         <div class="font-bold text-sm md:text-base mb-2 sm:mb-0"><span id="bulkCountTxt" class="text-blue-400">0 selected</span></div>
         <div class="flex gap-2">
-            <button onclick="handleBulkAction('public')" class="bg-green-600 hover:bg-green-700 px-3 py-2 rounded text-xs md:text-sm font-semibold transition active:scale-95"><i class="fas fa-globe mr-1"></i> Make Public</button>
-            <button onclick="handleBulkAction('private')" class="bg-gray-600 hover:bg-gray-700 px-3 py-2 rounded text-xs md:text-sm font-semibold transition active:scale-95"><i class="fas fa-lock mr-1"></i> Make Private</button>
+            <button onclick="handleBulkAction('public')" class="bg-emerald-600 hover:bg-emerald-700 px-3 py-2 rounded text-xs md:text-sm font-semibold transition active:scale-95"><i class="fas fa-globe mr-1"></i> Make Public</button>
+            <button onclick="handleBulkAction('private')" class="bg-slate-600 hover:bg-slate-700 px-3 py-2 rounded text-xs md:text-sm font-semibold transition active:scale-95"><i class="fas fa-lock mr-1"></i> Make Private</button>
             <button onclick="handleBulkAction('delete')" class="bg-red-600 hover:bg-red-700 px-3 py-2 rounded text-xs md:text-sm font-semibold transition active:scale-95"><i class="fas fa-trash-alt mr-1"></i> Delete</button>
         </div>
     </div>
 
+    <!-- POS Transaction Modal Form -->
     <div id="transactionModal" class="fixed inset-0 bg-black bg-opacity-60 hidden flex items-center justify-center z-50 p-2 sm:p-4 backdrop-blur-sm transition-opacity">
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-2xl max-h-[95vh] overflow-hidden flex flex-col border border-gray-200 dark:border-gray-700">
             <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 shrink-0">
-                <h3 id="txnModalTitle" class="font-bold text-lg text-gray-800 dark:text-white">Record New Transaction</h3>
+                <h3 id="txnModalTitle" class="font-bold text-lg text-gray-800 dark:text-white flex items-center"><i class="fas fa-cash-register mr-2 text-indigo-500"></i> Transaction & Fund Terminal</h3>
                 <button onclick="closeTransactionModal()" class="text-gray-400 hover:text-red-500 transition text-xl px-2 active:scale-95"><i class="fas fa-times"></i></button>
             </div>
             
-            <div class="p-4 md:p-6 overflow-y-auto flex-1 custom-scrollbar">
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div class="p-4 md:p-6 overflow-y-auto flex-1 custom-scrollbar space-y-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                         <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Date & Time *</label>
                         <input type="datetime-local" id="txnDate" class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded px-3 py-2 text-sm outline-none focus:border-blue-500">
                     </div>
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Ref / Receipt No.</label>
-                        <input type="text" id="txnRef" placeholder="Optional" class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded px-3 py-2 text-sm outline-none focus:border-blue-500 font-mono">
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Visibility *</label>
+                        <select id="txnVis" onchange="updateVisibilityColor(this)" class="w-full border rounded px-3 py-2 text-sm outline-none font-bold transition-colors bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-700">
+                            <option value="private" class="bg-red-50 text-red-700">🔒 Private (Admin Only)</option>
+                            <option value="public" class="bg-emerald-50 text-emerald-700">🌐 Public (Visible to Community)</option>
+                        </select>
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Category / Campaign *</label>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Transaction Category *</label>
+                        <select id="txnType" onchange="updateTypeColor(this)" class="w-full border rounded px-3 py-2 text-sm outline-none font-bold transition-colors bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-700">
+                            <option value="income" class="bg-emerald-50 text-emerald-700">💰 Funds In / Deposit (+)</option>
+                            <option value="expense" class="bg-red-50 text-red-700">💸 Expense / Withdrawal (-)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Campaign / Ledger Group *</label>
                         <select id="txnCat" class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded px-3 py-2 text-sm outline-none focus:border-blue-500" onchange="toggleProductSelection()">
                             <option value="">Select Category...</option>
                             <option value="Membership Drive">Membership Drive</option>
@@ -206,89 +222,118 @@
                         </select>
                         <input type="text" id="txnCatCustom" placeholder="Enter custom category..." class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded px-3 py-2 text-sm outline-none focus:border-blue-500 mt-2 hidden">
                     </div>
+                </div>
+
+                <!-- SMART MULTI-CHECKBOX PRODUCT SELECTION -->
+                <div id="productSelectionSection" class="hidden bg-gradient-to-br from-indigo-50/80 to-violet-50/80 dark:from-indigo-950/30 dark:to-violet-950/30 p-3 rounded-xl border border-indigo-200 dark:border-indigo-900">
+                    <div class="flex items-center justify-between mb-2">
+                        <span class="text-xs font-black tracking-wider uppercase text-indigo-700 dark:text-indigo-300 flex items-center">
+                            <i class="fas fa-cart-shopping mr-2 text-indigo-500"></i> Smart Product Multi-Selection
+                        </span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <label class="flex items-center gap-2 p-2.5 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 cursor-pointer hover:border-indigo-400 transition shadow-sm">
+                            <input type="checkbox" name="memProduct" value="160" data-name="New Registration" class="cursor-pointer w-4 h-4 text-indigo-600 rounded" onchange="calculateProductTotal()">
+                            <span class="text-xs text-gray-700 dark:text-gray-300 font-bold flex-1">New Registration</span>
+                            <span class="text-xs font-black text-emerald-600">₱160</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2.5 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 cursor-pointer hover:border-indigo-400 transition shadow-sm">
+                            <input type="checkbox" name="memProduct" value="120" data-name="Renewal" class="cursor-pointer w-4 h-4 text-indigo-600 rounded" onchange="calculateProductTotal()">
+                            <span class="text-xs text-gray-700 dark:text-gray-300 font-bold flex-1">Renewal</span>
+                            <span class="text-xs font-black text-emerald-600">₱120</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2.5 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 cursor-pointer hover:border-indigo-400 transition shadow-sm">
+                            <input type="checkbox" name="memProduct" value="180" data-name="Lanyard" class="cursor-pointer w-4 h-4 text-indigo-600 rounded" onchange="calculateProductTotal()">
+                            <span class="text-xs text-gray-700 dark:text-gray-300 font-bold flex-1">Lanyard</span>
+                            <span class="text-xs font-black text-emerald-600">₱180</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2.5 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 cursor-pointer hover:border-indigo-400 transition shadow-sm">
+                            <input type="checkbox" name="memProduct" value="45" data-name="Pins" class="cursor-pointer w-4 h-4 text-indigo-600 rounded" onchange="calculateProductTotal()">
+                            <span class="text-xs text-gray-700 dark:text-gray-300 font-bold flex-1">Pins</span>
+                            <span class="text-xs font-black text-emerald-600">₱45</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2.5 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 cursor-pointer hover:border-indigo-400 transition shadow-sm">
+                            <input type="checkbox" name="memProduct" value="600" data-name="GE T-Shirt (Full)" class="cursor-pointer w-4 h-4 text-indigo-600 rounded" onchange="calculateProductTotal()">
+                            <span class="text-xs text-gray-700 dark:text-gray-300 font-bold flex-1">GE T-Shirt (Full)</span>
+                            <span class="text-xs font-black text-emerald-600">₱600</span>
+                        </label>
+                        <label class="flex items-center gap-2 p-2.5 bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-600 cursor-pointer hover:border-indigo-400 transition shadow-sm">
+                            <input type="checkbox" name="memProduct" value="100" data-name="GE T-Shirt (Downpayment)" class="cursor-pointer w-4 h-4 text-indigo-600 rounded" onchange="calculateProductTotal()">
+                            <span class="text-xs text-gray-700 dark:text-gray-300 font-bold flex-1">GE T-Shirt (DP)</span>
+                            <span class="text-xs font-black text-amber-600">₱100</span>
+                        </label>
+                    </div>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Visibility *</label>
-                        <select id="txnVis" class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded px-3 py-2 text-sm outline-none focus:border-blue-500">
-                            <option value="private">Private (Admin Only)</option>
-                            <option value="public">Public (Everyone)</option>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Total Amount Due (₱) *</label>
+                        <input type="number" step="0.01" id="txnAmount" oninput="calculateChange()" placeholder="0.00" class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded px-3 py-2 text-sm outline-none focus:border-blue-500 font-bold text-lg text-indigo-600 dark:text-indigo-400">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Payment Method *</label>
+                        <select id="payMethod" onchange="togglePaymentMethod()" class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded px-3 py-2 text-sm outline-none focus:border-blue-500 font-bold">
+                            <option value="Cash">💵 Cash Register (POS)</option>
+                            <option value="Online">📱 Online Payment</option>
                         </select>
                     </div>
                 </div>
 
-                <div id="productSelectionSection" class="mb-4 hidden bg-purple-50 dark:bg-purple-900/20 p-3 rounded-lg border border-purple-200 dark:border-purple-800">
-                    <label class="block text-sm font-bold text-purple-800 dark:text-purple-300 mb-2"><i class="fas fa-shopping-cart mr-1"></i> Membership Products <span class="text-xs font-normal text-purple-600 dark:text-purple-400 ml-2">(Select multiple)</span></label>
-                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                        <label class="flex items-center gap-2 p-2 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition">
-                            <input type="checkbox" name="memProduct" value="160" data-name="New Registration" class="cursor-pointer w-4 h-4" onchange="calculateProductTotal()">
-                            <span class="text-sm text-gray-700 dark:text-gray-300 font-medium flex-1">New Registration</span>
-                            <span class="text-xs font-bold text-green-600">₱160</span>
-                        </label>
-                        <label class="flex items-center gap-2 p-2 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition">
-                            <input type="checkbox" name="memProduct" value="120" data-name="Renewal" class="cursor-pointer w-4 h-4" onchange="calculateProductTotal()">
-                            <span class="text-sm text-gray-700 dark:text-gray-300 font-medium flex-1">Renewal</span>
-                            <span class="text-xs font-bold text-green-600">₱120</span>
-                        </label>
-                        <label class="flex items-center gap-2 p-2 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition">
-                            <input type="checkbox" name="memProduct" value="180" data-name="Lanyard" class="cursor-pointer w-4 h-4" onchange="calculateProductTotal()">
-                            <span class="text-sm text-gray-700 dark:text-gray-300 font-medium flex-1">Lanyard</span>
-                            <span class="text-xs font-bold text-green-600">₱180</span>
-                        </label>
-                        <label class="flex items-center gap-2 p-2 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition">
-                            <input type="checkbox" name="memProduct" value="45" data-name="Pins" class="cursor-pointer w-4 h-4" onchange="calculateProductTotal()">
-                            <span class="text-sm text-gray-700 dark:text-gray-300 font-medium flex-1">Pins</span>
-                            <span class="text-xs font-bold text-green-600">₱45</span>
-                        </label>
-                        <div class="flex flex-col gap-1 p-2 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600 sm:col-span-2 md:col-span-1">
-                            <div class="flex justify-between items-center mb-1">
-                                <span class="text-sm text-gray-700 dark:text-gray-300 font-bold">GE T-Shirt</span>
-                            </div>
-                            <label class="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-1 rounded transition">
-                                <input type="checkbox" name="memProduct" value="600" data-name="GE T-Shirt (Full)" class="cursor-pointer w-4 h-4" onchange="calculateProductTotal()">
-                                <span class="text-xs text-gray-600 dark:text-gray-400 flex-1">Full Payment</span>
-                                <span class="text-xs font-bold text-green-600">₱600</span>
-                            </label>
-                            <label class="flex items-center gap-2 cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 p-1 rounded transition">
-                                <input type="checkbox" name="memProduct" value="100" data-name="GE T-Shirt (Downpayment)" class="cursor-pointer w-4 h-4" onchange="calculateProductTotal()">
-                                <span class="text-xs text-gray-600 dark:text-gray-400 flex-1">Downpayment</span>
-                                <span class="text-xs font-bold text-amber-600">₱100</span>
-                            </label>
+                <!-- CASHIER POS CALCULATOR (OPTIONAL) -->
+                <div id="cashRegisterBox" class="bg-emerald-50 dark:bg-emerald-950/30 p-4 rounded-xl border border-emerald-200 dark:border-emerald-800 space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xs font-black uppercase tracking-wider text-emerald-800 dark:text-emerald-300 flex items-center">
+                            <i class="fas fa-wallet mr-2 text-emerald-600"></i> Cash Tendered (Binayad) <span class="text-[10px] font-normal text-emerald-600 dark:text-emerald-400 ml-1">(Optional / Fast Entry)</span>
+                        </span>
+                        <span class="text-[10px] font-bold text-emerald-700 dark:text-emerald-400">Sukli Calculator</span>
+                    </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3 items-center">
+                        <div>
+                            <input type="number" step="0.01" id="cashTendered" oninput="calculateChange()" placeholder="Optional (e.g. 500)" class="w-full bg-white dark:bg-gray-800 border border-emerald-300 dark:border-emerald-700 rounded-xl px-3.5 py-2.5 text-sm font-bold text-emerald-700 dark:text-emerald-300 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 p-2.5 rounded-xl border border-emerald-200 dark:border-emerald-800 flex justify-between items-center">
+                            <span class="text-xs font-bold text-slate-500 dark:text-slate-400">Change (Sukli):</span>
+                            <span id="changeDisplay" class="text-base font-black text-emerald-600">₱0.00</span>
                         </div>
                     </div>
                 </div>
-                
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 p-4 bg-gray-50 dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600">
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Transaction Type *</label>
-                        <select id="txnType" class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded px-3 py-2 text-sm outline-none focus:border-blue-500 font-bold">
-                            <option value="income" class="text-green-600">Income (+)</option>
-                            <option value="expense" class="text-red-600">Expense (-)</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Amount (₱) *</label>
-                        <input type="number" step="0.01" id="txnAmount" placeholder="0.00" class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded px-3 py-2 text-sm outline-none focus:border-blue-500 font-bold text-lg">
-                    </div>
+
+                <!-- ONLINE PAYMENT REFERENCE BOX (MANDATORY IF NO PROOF FILE) -->
+                <div id="onlineRefBox" class="hidden bg-blue-50 dark:bg-blue-950/30 p-4 rounded-xl border border-blue-200 dark:border-blue-800 space-y-2">
+                    <label class="block text-xs font-black uppercase tracking-wider text-blue-800 dark:text-blue-300 flex items-center">
+                        <i class="fas fa-receipt mr-2 text-blue-600"></i> Online Payment Reference No. <span id="refReqStar" class="text-red-500 ml-1">*</span>
+                    </label>
+                    <input type="text" id="txnRef" placeholder="e.g. Ref No. or transaction code" class="w-full bg-white dark:bg-gray-800 border border-blue-300 dark:border-blue-700 rounded-xl px-3.5 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 dark:text-white font-mono">
                 </div>
 
-                <div class="mb-4">
-                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Description / Name *</label>
-                    <input type="text" id="txnDesc" placeholder="What is this for? or Who paid?" class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded px-3 py-2 text-sm outline-none focus:border-blue-500">
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Description / Items *</label>
+                    <input type="text" id="txnDesc" placeholder="Item details or remarks..." class="w-full border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-white rounded px-3 py-2 text-sm outline-none focus:border-blue-500">
                 </div>
 
-                <div class="mb-2">
-                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1">Attach Proof (Image)</label>
-                    <input type="file" id="txnFile" accept="image/*" class="w-full text-sm text-gray-500 dark:text-gray-400 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 dark:file:bg-gray-600 dark:file:text-gray-200">
-                    <p class="text-[10px] text-gray-400 mt-1">Max size: 2MB. Leave blank if editing to keep old image.</p>
+                <!-- CAMERA ATTACHMENT WITH LOCAL DEVICE BACKUP SAFETY NET -->
+                <div>
+                    <label class="block text-sm font-semibold text-gray-700 dark:text-gray-300 mb-1"><i class="fas fa-camera mr-1 text-indigo-500"></i> Attach Receipt / Proof Photo (Optional for Cash)</label>
+                    <div class="flex items-center gap-3">
+                        <label class="flex-1 flex items-center justify-center gap-2 px-4 py-3 bg-indigo-50 dark:bg-indigo-950/50 border-2 border-dashed border-indigo-300 dark:border-indigo-700 rounded-xl cursor-pointer hover:bg-indigo-100 transition active:scale-95 group">
+                            <i class="fas fa-cloud-upload-alt text-indigo-600 dark:text-indigo-400 text-lg group-hover:scale-110 transition-transform"></i>
+                            <span id="fileChosenLabel" class="text-xs font-bold text-indigo-700 dark:text-indigo-300 truncate">Tap to Take Camera Photo or Select File</span>
+                            <input type="file" id="txnFile" accept="image/*" capture="environment" class="hidden" onchange="handleFileAttachment(this)">
+                        </label>
+                        <button type="button" onclick="clearAttachedFile()" id="clearFileBtn" class="hidden p-3 bg-gray-200 dark:bg-gray-700 text-gray-600 dark:text-gray-300 rounded-xl text-xs font-bold hover:bg-red-100 hover:text-red-600 transition" title="Remove file"><i class="fas fa-trash-alt"></i></button>
+                    </div>
+                    <p class="text-[10px] text-gray-400 mt-1 italic"><i class="fas fa-shield-halved text-emerald-500 mr-1"></i> Auto-Backup: When you snap a photo with your camera, a backup copy is automatically saved to your phone storage gallery so you never lose proof!</p>
                 </div>
             </div>
             
             <div class="p-4 border-t border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 flex justify-end gap-3 shrink-0">
-                <button onclick="closeTransactionModal()" class="px-5 py-2.5 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg font-bold hover:bg-gray-300 dark:hover:bg-gray-600 transition text-sm active:scale-95">Cancel</button>
-                <button onclick="submitTransaction()" class="px-5 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-bold shadow-sm transition text-sm active:scale-95 flex items-center"><i class="fas fa-save mr-2"></i> Save Record</button>
+                <button onclick="closeTransactionModal()" class="px-5 py-2.5 bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg font-bold hover:bg-gray-300 transition text-sm active:scale-95">Cancel</button>
+                <button onclick="submitTransaction()" class="px-5 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold shadow-sm transition text-sm active:scale-95 flex items-center"><i class="fas fa-check mr-2"></i> Complete Transaction</button>
             </div>
         </div>
     </div>
 
+    <!-- Audit History Modal -->
     <div id="auditHistoryModal" class="fixed inset-0 bg-black bg-opacity-60 hidden flex items-center justify-center z-50 p-4 backdrop-blur-sm transition-opacity">
         <div class="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg flex flex-col border border-gray-200 dark:border-gray-700 max-h-[80vh]">
             <div class="flex justify-between items-center p-4 border-b border-gray-200 dark:border-gray-700 bg-amber-50 dark:bg-amber-900/30 rounded-t-xl shrink-0">
@@ -300,6 +345,7 @@
         </div>
     </div>
 
+    <!-- Image Preview Modal -->
     <div id="imageModal" class="fixed inset-0 bg-black bg-opacity-90 hidden flex items-center justify-center z-[60] p-4 backdrop-blur-sm transition-opacity">
         <div class="bg-white dark:bg-gray-900 rounded-xl shadow-2xl overflow-hidden max-w-4xl w-full h-[85vh] flex flex-col relative border border-gray-700">
             <div class="flex justify-between items-center p-3 border-b border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 z-20 shrink-0">
@@ -328,7 +374,6 @@
         let currentEditId = null;
         let currentSort = { column: 'date', asc: false };
 
-        // Bind Escape Key
         document.addEventListener('keydown', function(event) {
             if (event.key === "Escape") {
                 closeTransactionModal(); closeImageModal(); closeAuditModal();
@@ -336,7 +381,6 @@
             }
         });
 
-        // Search engine listener
         const searchInput = document.getElementById('searchInput');
         const clearSearchBtn = document.getElementById('clearSearchBtn');
         searchInput.addEventListener('input', () => {
@@ -346,7 +390,6 @@
         });
         function clearSearch() { searchInput.value = ''; clearSearchBtn.classList.add('hidden'); applyFilterAndRender(); }
 
-        // Dark Mode Controller
         function toggleDarkMode() {
             document.documentElement.classList.toggle('dark');
             const isDark = document.documentElement.classList.contains('dark');
@@ -361,6 +404,52 @@
 
         document.getElementById('monthSelector').value = currentViewMonth;
         document.getElementById('monthSelector').addEventListener('change', (e) => { currentViewMonth = e.target.value; applyFilterAndRender(); });
+
+        function updateTypeColor(selectEl) {
+            if (selectEl.value === 'income') {
+                selectEl.className = "w-full border rounded px-3 py-2 text-sm outline-none font-bold bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-700";
+            } else {
+                selectEl.className = "w-full border rounded px-3 py-2 text-sm outline-none font-bold bg-red-50 text-red-700 border-red-300 dark:bg-red-950/50 dark:text-red-300 dark:border-red-700";
+            }
+        }
+
+        function updateVisibilityColor(selectEl) {
+            if (selectEl.value === 'public') {
+                selectEl.className = "w-full border rounded px-3 py-2 text-sm outline-none font-bold bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-950/50 dark:text-emerald-300 dark:border-emerald-700";
+            } else {
+                selectEl.className = "w-full border rounded px-3 py-2 text-sm outline-none font-bold bg-amber-50 text-amber-700 border-amber-300 dark:bg-amber-950/50 dark:text-amber-300 dark:border-amber-700";
+            }
+        }
+
+        // Automatic local device download backup for camera captures
+        function handleFileAttachment(input) {
+            const label = document.getElementById('fileChosenLabel');
+            const clearBtn = document.getElementById('clearFileBtn');
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+                label.innerText = file.name;
+                clearBtn.classList.remove('hidden');
+
+                // AUTO-SAVE BACKUP TO PHONE DEVICE GALLERY
+                try {
+                    const blobUrl = URL.createObjectURL(file);
+                    const backupLink = document.createElement('a');
+                    backupLink.href = blobUrl;
+                    backupLink.download = `backup_receipt_${Date.now()}_${file.name}`;
+                    document.body.appendChild(backupLink);
+                    backupLink.click();
+                    document.body.removeChild(backupLink);
+                } catch(e) {
+                    console.warn("Device download trigger failed:", e);
+                }
+            }
+        }
+
+        function clearAttachedFile() {
+            document.getElementById('txnFile').value = '';
+            document.getElementById('fileChosenLabel').innerText = "Tap to Take Camera Photo or Select File";
+            document.getElementById('clearFileBtn').classList.add('hidden');
+        }
 
         function showMessage(title, text, type = 'info', confirmCallback = null) {
             const modal = document.getElementById('customMessageModal');
@@ -398,6 +487,43 @@
             modal.classList.remove('hidden');
         }
 
+        function togglePaymentMethod() {
+            const method = document.getElementById('payMethod').value;
+            const cashBox = document.getElementById('cashRegisterBox');
+            const onlineBox = document.getElementById('onlineRefBox');
+
+            if (method === 'Cash') {
+                cashBox.classList.remove('hidden');
+                onlineBox.classList.add('hidden');
+                document.getElementById('txnRef').value = 'Cash POS';
+            } else {
+                cashBox.classList.add('hidden');
+                onlineBox.classList.remove('hidden');
+                document.getElementById('txnRef').value = '';
+            }
+        }
+
+        function calculateChange() {
+            const totalDue = parseFloat(document.getElementById('txnAmount').value) || 0;
+            const tendered = parseFloat(document.getElementById('cashTendered').value) || 0;
+            const changeDisplay = document.getElementById('changeDisplay');
+
+            if (!document.getElementById('cashTendered').value) {
+                changeDisplay.innerText = "₱0.00 (Optional)";
+                changeDisplay.className = "text-xs font-bold text-slate-400";
+                return;
+            }
+
+            const change = tendered - totalDue;
+            if (change >= 0) {
+                changeDisplay.innerText = "₱" + change.toLocaleString('en-US', {minimumFractionDigits: 2});
+                changeDisplay.className = "text-base font-black text-emerald-600";
+            } else {
+                changeDisplay.innerText = "Kulang (Short)";
+                changeDisplay.className = "text-xs font-black text-rose-600";
+            }
+        }
+
         function toggleProductSelection() {
             const catSelect = document.getElementById('txnCat');
             const customCatInput = document.getElementById('txnCatCustom');
@@ -412,6 +538,7 @@
             if (catSelect.value === 'Membership Drive') {
                 productSection.classList.remove('hidden');
                 document.getElementById('txnType').value = 'income'; 
+                updateTypeColor(document.getElementById('txnType'));
                 document.querySelectorAll('input[name="memProduct"]').forEach(checkbox => checkbox.checked = false);
                 calculateProductTotal();
             } else {
@@ -435,6 +562,7 @@
             } else {
                 descInput.value = '';
             }
+            calculateChange();
         }
 
         async function fetchTransactions() {
@@ -531,7 +659,7 @@
 
         function exportToCSV() {
             if (filteredTransactions.length === 0) { showMessage("No Data", "No records to export for this view.", "warning"); return; }
-            let csvContent = "Date,Category,Description,Reference No,Debit (-),Credit (+),Calculated Balance,Status,Edit Count,Last Edited\n";
+            let csvContent = "Date,Category,Description,POS Method/Ref,Expense (-),Funds (+),Calculated Balance,Status,Edit Count,Last Edited\n";
             filteredTransactions.forEach(t => {
                 let date = t.date ? t.date.replace('T', ' ') : '';
                 let category = t.category || 'Uncategorized';
@@ -546,7 +674,7 @@
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a"); link.setAttribute("href", url);
-            link.setAttribute("download", `Transactions_Export.csv`);
+            link.setAttribute("download", `Ledger_Transactions_Export.csv`);
             link.style.display = 'none'; document.body.appendChild(link); link.click(); document.body.removeChild(link);
         }
 
@@ -566,7 +694,8 @@
                 filteredTransactions = monthlyTxns.filter(t => {
                     const safeDate = t.date ? t.date.toLowerCase() : '';
                     return (t.description && t.description.toLowerCase().includes(query)) ||
-                           (t.category && t.category.toLowerCase().includes(query)) || (safeDate.includes(query));
+                           (t.category && t.category.toLowerCase().includes(query)) || 
+                           (t.refNo && t.refNo.toLowerCase().includes(query)) || (safeDate.includes(query));
                 });
             } else filteredTransactions = [...monthlyTxns];
             
@@ -629,14 +758,14 @@
                             ${editBadge}
                         </td>
                         <td class="py-3 px-3 text-gray-800 dark:text-gray-200 font-medium text-sm align-middle min-w-[150px]">${txn.description}</td>
-                        <td class="py-3 px-3 text-gray-400 dark:text-gray-500 font-mono text-xs align-middle">${txn.refNo || '-'}</td>
+                        <td class="py-3 px-3 text-gray-500 dark:text-gray-400 font-mono text-xs align-middle">${txn.refNo || '-'}</td>
                         <td class="py-3 px-3 text-right text-red-500 dark:text-red-400 text-sm align-middle">${txn.debit ? formatCurrency(txn.debit) : ''}</td>
                         <td class="py-3 px-3 text-right text-green-600 dark:text-green-400 text-sm align-middle">${txn.credit ? formatCurrency(txn.credit) : ''}</td>
                         <td class="py-3 px-3 text-right ${balClass} text-sm align-middle">${formatCurrency(txn.calculatedBalance)}</td>
                         <td class="py-3 px-3 text-center text-sm align-middle">${statusHtml}</td>
                         <td class="py-3 px-3 text-center flex justify-center gap-1 align-middle">
                             <button onclick="openEditModal('${txn.id}')" class="text-blue-500 hover:text-blue-700 bg-blue-50 dark:bg-gray-700 p-2 rounded transition shadow-sm active:scale-95 ${txn._isOfflinePending ? 'opacity-50 cursor-not-allowed' : ''}" title="Edit Record" ${txn._isOfflinePending ? 'disabled' : ''}><i class="fas fa-edit text-base"></i></button>
-                            ${txn.proofUrl ? `<button onclick="openImageModal('${txn.proofUrl}', '${txn.description ? txn.description.replace(/'/g, "\\'") : ''}')" class="text-green-500 hover:text-green-700 bg-green-50 dark:bg-gray-700 p-2 rounded transition shadow-sm active:scale-95" title="View Proof"><i class="fas fa-image text-base"></i></button>` : '<span class="text-gray-300 dark:text-gray-600 p-2">-</span>'}
+                            ${txn.proofUrl ? `<button onclick="openImageModal('${txn.proofUrl}', '${txn.description ? txn.description.replace(/'/g, "\\'") : ''}')" class="text-green-500 hover:text-green-700 bg-green-50 dark:bg-gray-700 p-2 rounded transition shadow-sm active:scale-95" title="View Proof"><i class="fas fa-image text-base"></i></button>` : ''}
                         </td>
                     `;
                     tbody.appendChild(row);
@@ -656,12 +785,12 @@
             if (finalBal < 0) {
                 finalBalEl.className = "text-lg md:text-2xl font-bold text-red-600 dark:text-red-400 mt-1 truncate transition-colors duration-300";
                 balContainer.className = "bg-red-50 dark:bg-red-900/20 rounded-xl shadow-sm p-4 border-l-4 border-red-600 transition-colors duration-300";
-                balLabel.innerHTML = '<i class="fas fa-exclamation-triangle text-red-500 mr-1"></i> Negative Bal';
+                balLabel.innerHTML = '<i class="fas fa-exclamation-triangle text-red-500 mr-1"></i> Deficit Balance';
                 balLabel.className = "text-sm font-medium text-red-500 dark:text-red-400 truncate";
             } else {
                 finalBalEl.className = "text-lg md:text-2xl font-bold text-gray-800 dark:text-white mt-1 truncate transition-colors duration-300";
                 balContainer.className = "bg-white dark:bg-gray-800 rounded-xl shadow-sm p-4 border-l-4 border-gray-800 dark:border-gray-500 transition-colors duration-300";
-                balLabel.innerHTML = 'Ending Balance';
+                balLabel.innerHTML = 'Net Fund Balance';
                 balLabel.className = "text-sm font-medium text-gray-500 dark:text-gray-400 truncate";
             }
             updateCharts(filteredTransactions); updateBulkActionUI();
@@ -727,16 +856,28 @@
         function closeAuditModal() { document.getElementById('auditHistoryModal').classList.add('hidden'); }
 
         function openTransactionModal() {
-            currentEditId = null; document.getElementById('txnModalTitle').innerText = "Record New Transaction";
+            currentEditId = null; 
+            document.getElementById('txnModalTitle').innerHTML = '<i class="fas fa-cash-register mr-2 text-indigo-500"></i> Transaction & Fund Terminal';
             const d = new Date(); const tz = d.getTimezoneOffset() * 60000;
             document.getElementById('txnDate').value = (new Date(d - tz)).toISOString().slice(0, 16);
-            document.getElementById('txnRef').value = ''; document.getElementById('txnDesc').value = '';
+            document.getElementById('payMethod').value = 'Cash';
+            document.getElementById('txnRef').value = 'Cash POS';
+            document.getElementById('cashTendered').value = '';
+            document.getElementById('changeDisplay').innerText = '₱0.00';
+            document.getElementById('txnDesc').value = '';
             document.getElementById('txnCat').value = ''; 
             document.getElementById('txnCatCustom').value = ''; document.getElementById('txnCatCustom').classList.add('hidden');
             document.getElementById('productSelectionSection').classList.add('hidden');
             document.querySelectorAll('input[name="memProduct"]').forEach(checkbox => checkbox.checked = false);
             document.getElementById('txnAmount').value = '';
-            document.getElementById('txnFile').value = ''; document.getElementById('txnType').value = 'income';
+            
+            document.getElementById('txnVis').value = 'private';
+            updateVisibilityColor(document.getElementById('txnVis'));
+            document.getElementById('txnType').value = 'income';
+            updateTypeColor(document.getElementById('txnType'));
+
+            clearAttachedFile();
+            togglePaymentMethod();
             document.getElementById('transactionModal').classList.remove('hidden');
         }
 
@@ -745,7 +886,8 @@
             if (!txn) { showMessage("Error", "Record not found.", "error"); return; }
             if (txn._isOfflinePending) { showMessage("Pending", "Cannot edit while syncing.", "warning"); return; }
             
-            currentEditId = id; document.getElementById('txnModalTitle').innerText = "Edit Transaction";
+            currentEditId = id; 
+            document.getElementById('txnModalTitle').innerHTML = '<i class="fas fa-pen mr-2 text-indigo-500"></i> Edit Transaction';
             let formattedDate = "";
             if (txn.date) {
                 const d = new Date(txn.date); const tz = d.getTimezoneOffset() * 60000;
@@ -753,8 +895,26 @@
             }
             
             document.getElementById('txnDate').value = formattedDate;
-            document.getElementById('txnRef').value = txn.refNo || ''; document.getElementById('txnDesc').value = txn.description || '';
+            document.getElementById('txnDesc').value = txn.description || '';
+            document.getElementById('txnAmount').value = txn.debit || txn.credit || '';
             
+            const visSelect = document.getElementById('txnVis');
+            visSelect.value = txn.visibility || 'private';
+            updateVisibilityColor(visSelect);
+
+            const typeSelect = document.getElementById('txnType');
+            typeSelect.value = txn.debit ? 'expense' : 'income';
+            updateTypeColor(typeSelect);
+
+            if (txn.refNo && txn.refNo.includes('Cash')) {
+                document.getElementById('payMethod').value = 'Cash';
+                document.getElementById('txnRef').value = txn.refNo;
+            } else {
+                document.getElementById('payMethod').value = 'Online';
+                document.getElementById('txnRef').value = txn.refNo || '';
+            }
+            togglePaymentMethod();
+
             const selectEl = document.getElementById('txnCat'); const customInput = document.getElementById('txnCatCustom');
             const options = Array.from(selectEl.options).map(opt => opt.value);
             
@@ -766,12 +926,10 @@
 
             document.getElementById('productSelectionSection').classList.add('hidden');
             document.querySelectorAll('input[name="memProduct"]').forEach(checkbox => checkbox.checked = false);
-            document.getElementById('txnVis').value = txn.visibility || 'private';
-            document.getElementById('txnType').value = txn.debit ? 'expense' : 'income';
-            document.getElementById('txnAmount').value = txn.debit || txn.credit || '';
-            document.getElementById('txnFile').value = '';
+            clearAttachedFile();
             document.getElementById('transactionModal').classList.remove('hidden');
         }
+
         function closeTransactionModal() { document.getElementById('transactionModal').classList.add('hidden'); }
         
         function openImageModal(url, desc) {
@@ -789,11 +947,36 @@
         }
 
         async function submitTransaction() {
-            const date = document.getElementById('txnDate').value; const refNo = document.getElementById('txnRef').value;
+            const date = document.getElementById('txnDate').value;
+            const payMethod = document.getElementById('payMethod').value;
+            let refNo = document.getElementById('txnRef').value;
+            const fileInput = document.getElementById('txnFile');
+
+            if (payMethod === 'Cash') {
+                const tendered = parseFloat(document.getElementById('cashTendered').value);
+                const totalDue = parseFloat(document.getElementById('txnAmount').value) || 0;
+                
+                if (!isNaN(tendered)) {
+                    if (tendered < totalDue) {
+                        showMessage("Insufficient Cash", "Cash tendered is less than the total amount due!", "error");
+                        return;
+                    }
+                    refNo = `Cash (Paid: ₱${tendered}, Sukli: ₱${tendered - totalDue})`;
+                } else {
+                    refNo = 'Cash POS (Fast Entry)';
+                }
+            } else {
+                // Online payment requires reference or photo proof
+                if (!refNo.trim() && fileInput.files.length === 0) {
+                    showMessage("Reference Required", "For Online Payments, please either provide a Reference No. or attach a receipt photo.", "warning");
+                    return;
+                }
+            }
+
             const desc = document.getElementById('txnDesc').value; 
             let cat = document.getElementById('txnCat').value; if(cat === 'Other') cat = document.getElementById('txnCatCustom').value;
             const vis = document.getElementById('txnVis').value; const type = document.getElementById('txnType').value;
-            const amtRaw = parseFloat(document.getElementById('txnAmount').value); const fileInput = document.getElementById('txnFile');
+            const amtRaw = parseFloat(document.getElementById('txnAmount').value);
 
             if (!date || !desc || !cat || isNaN(amtRaw) || amtRaw <= 0) {
                 showMessage("Missing Info", "Please fill in all required fields (*) with valid information.", "error"); return;
@@ -806,7 +989,7 @@
                 action: actionType, id: String(recordId), date: date, refNo: refNo, description: desc, category: cat, visibility: vis,
                 debit: type === 'expense' ? amtRaw : null, credit: type === 'income' ? amtRaw : null, balance: 0 
             };
-            
+
             if (fileInput.files.length > 0) {
                 const file = fileInput.files[0];
                 if (file.size > 2 * 1024 * 1024) { showMessage("File too large", "Select a file smaller than 2MB.", "error"); return; }
